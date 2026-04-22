@@ -1489,15 +1489,29 @@
     align-self: flex-end;
     background: var(--amber);
     color: #fff;
-    animation: rise 0.3s var(--ease-out) both;
+    transform-origin: 100% 100%;
+    animation: bubble-user-in 460ms cubic-bezier(0.19, 1, 0.22, 1) both;
+    will-change: transform, opacity;
+  }
+  @keyframes bubble-user-in {
+    0%   { opacity: 0; transform: translate3d(10px, 2px, 0) scale(0.94); }
+    55%  { opacity: 1; }
+    100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
   }
   .cv-chat-bubble.assistant {
     align-self: flex-start;
     background: transparent;
     color: #444;
     border: 1px solid var(--border);
-    animation: rise 0.3s var(--ease-out) both;
+    transform-origin: 0 100%;
+    animation: bubble-assistant-in 500ms cubic-bezier(0.19, 1, 0.22, 1) both;
     transition: color 320ms cubic-bezier(0.22,1,0.36,1), border-color 320ms cubic-bezier(0.22,1,0.36,1);
+    will-change: transform, opacity;
+  }
+  @keyframes bubble-assistant-in {
+    0%   { opacity: 0; transform: translate3d(-6px, 2px, 0) scale(0.96); }
+    55%  { opacity: 1; }
+    100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
   }
   .cv-chat-input {
     width: 100%;
