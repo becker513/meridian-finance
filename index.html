@@ -293,9 +293,10 @@
   .sidebar:not(.expanded) .me-name { display: none; }
   .sidebar.expanded .me {
     background: #fff;
-    margin: 0 -14px;
-    padding: 0 14px;
+    margin: -4px -14px -16px;
+    padding: 4px 14px 16px;
     height: 64px;
+    box-sizing: content-box;
     border-radius: 0;
   }
   .sidebar.expanded .me:hover {
@@ -1240,6 +1241,12 @@
   .app.panel-open .side-item:nth-child(9) { animation-delay: 0.50s; }
   .app.panel-open .side-item:nth-child(10) { animation-delay: 0.54s; }
   .app.panel-open .side-item:nth-child(11) { animation-delay: 0.58s; }
+  .app.panel-open .port-lead { animation: slide-right 0.42s var(--ease-out) 0.26s both; }
+  .app.panel-open .port-section { animation: slide-right 0.45s var(--ease-out) both; }
+  .app.panel-open .port-section:nth-of-type(1) { animation-delay: 0.30s; }
+  .app.panel-open .port-section:nth-of-type(2) { animation-delay: 0.38s; }
+  .app.panel-open .port-section:nth-of-type(3) { animation-delay: 0.46s; }
+  .app.panel-open .port-foot { animation: slide-right 0.4s var(--ease-out) 0.54s both; }
 
   .search-modal {
     position: fixed;
