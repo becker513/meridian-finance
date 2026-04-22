@@ -1516,8 +1516,8 @@
   }
   .activity-detail-view {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 320px;
-    gap: 56px;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 48px;
     opacity: 0;
     transform: translateY(12px);
     pointer-events: none;
@@ -1629,7 +1629,7 @@
     line-height: 18px;
   }
   .ad-meta-row .k { flex-shrink: 0; }
-  .ad-meta-row .v { text-align: right; }
+  .ad-meta-row .v { text-align: right; white-space: nowrap; }
   .ad-meta-row:first-of-type { border-top: none; padding-top: 0; }
   .ad-meta-row .k { color: #888; }
   .ad-meta-row .v { color: #1a1a1a; font-weight: 500; font-variant-numeric: tabular-nums; }
@@ -1645,10 +1645,12 @@
     position: relative;
     display: inline-block;
     text-align: left;
-    max-width: 320px;
+    max-width: 100%;
+    white-space: nowrap;
     border-bottom: 1px dotted rgba(0,0,0,0.28);
     padding-bottom: 1px;
   }
+  .ad-meta-row .v.has-tip .tip { white-space: normal; }
   .ad-meta-row .v.has-tip .tip {
     position: absolute;
     bottom: calc(100% + 8px);
@@ -2335,7 +2337,7 @@ const ACTIVITY_DETAILS = {
       whyNow: { v: 'Market close', tip: 'End-of-quarter positions reconciled from Schwab + Fidelity at market close Mar 30. Automated post-close ingest; no agent judgment in the numbers themselves.' },
       source: { v: 'Portfolio feed · benchmark data', tip: 'End-of-quarter positions from Schwab + Fidelity custodial feeds; S&P 500 benchmark return from the market data feed.' },
       confidence: { level: 'Very high', pct: '99%', tip: 'Deterministic — these are reported figures from authoritative sources, not agent judgments. No confidence interval applies.' },
-      handoff: 'Included in Jamie\'s Q1 summary',
+      handoff: 'Folded into Q1 summary',
       log: 'mc4k2m7p',
     },
     related: [
@@ -2475,7 +2477,7 @@ const ACTIVITY_DETAILS = {
       whyNow: { v: '45-day drift check', tip: 'Any committed allocation change not executed within 45 days fires a drift flag. Rebalance authorized Dec 12, still not executed by Feb 10.' },
       source: { v: 'Portfolio ledger · target bands', tip: 'Live allocation snapshot (intl 12.1%, target 18%), committed rebalance record from the Dec 12 call transcript, aging days since commit.' },
       confidence: { level: 'Very high', pct: '99%', tip: 'Deterministic — allocation drift is a computed number, not a judgment. The recommendation to hold the flag for the next live call is the separately-scored part.' },
-      handoff: 'Elena — raise as April execution',
+      handoff: 'Elena, raise as April execution',
       log: 'dr2k8m7p',
     },
     related: [
@@ -2495,7 +2497,7 @@ const ACTIVITY_DETAILS = {
       whyNow: { v: 'Scheduled quarterly call', tip: 'Live call on the calendar. Post-call analysis runs within 2 hours of call end.' },
       source: { v: 'Transcript · tone analysis', tip: '65-minute audio recording, auto-transcribed, speaker-separated. Vocal tension analysis flagged minute 12 as the affective inflection point when the Q4 dip was raised.' },
       confidence: { level: 'High', pct: '91%', tip: '"Emotional, not strategic" read is supported by three independent cues: vocal tension at min 12, Jamie naming the Q4 dip three times, and the "after taxes" deferral phrasing he\'s used in 4 of his last 5 deferrals.' },
-      handoff: 'Elena — Adaeze invite now required',
+      handoff: 'Elena, Adaeze invite required',
       log: 'ca7p2m8k',
     },
     related: [
@@ -2521,7 +2523,7 @@ const ACTIVITY_DETAILS = {
       whyNow: { v: 'Pre-call T-72h', tip: 'Automatic prep-brief generation 72 hours before any live call.' },
       source: { v: '42 signals over 6 weeks', tip: '27 email threads, 8 portfolio events, 7 email opens/forwards, plus the Dec and Jan call transcripts. Sequenced by impact, not chronology.' },
       confidence: { level: 'High', pct: '88%', tip: 'Top-5 ordering tracks 90%+ with Elena\'s historical manual ordering when she reviews. The reorder this time was deliberate, not a model miss.' },
-      handoff: 'Elena — reviewed, reordered at call',
+      handoff: 'Elena, reviewed at call',
       log: 'cp3k7m4p',
     },
     related: [
@@ -2559,7 +2561,7 @@ const ACTIVITY_DETAILS = {
       whyNow: { v: 'Pre-call T-14d', tip: 'Standard 14-day confirmation ping for quarterly calls. Includes an optional soft Adaeze invite unless previously declined.' },
       source: { v: 'Calendar · Adaeze-invite history', tip: 'Upcoming Feb 8 calendar event; two prior soft Adaeze invites (Nov 18 and Jan 5) that were dropped without reply.' },
       confidence: { level: 'High', pct: '90%', tip: 'The soft second invite is standard; what\'s new is the recommendation that any third attempt should be direct by name, not soft.' },
-      handoff: 'Elena — direct Adaeze invite Apr 14',
+      handoff: 'Elena, Adaeze invite Apr 14',
       log: 'gr8k3m1p',
     },
     related: [
@@ -2578,7 +2580,7 @@ const ACTIVITY_DETAILS = {
       whyNow: { v: 'Aging trigger (60 days)', tip: 'Any committed item with no progress for 60 days auto-surfaces to the top of the next prep view. Rebalance was committed Dec 12; crossed 60 days on Jan 19 — this is that surfacing.' },
       source: { v: 'Commitment log · prep-view rules', tip: 'Original commitment from Dec 12 call transcript; prep-view priority scoring rules; 2023–24 aging-trigger history showing 60 days is the right calibration for Jamie\'s pattern.' },
       confidence: { level: 'Very high', pct: '99%', tip: 'Deterministic — 60 days is a threshold, not a judgment. The prep-view reorder is the only evaluative part and it\'s rule-based.' },
-      handoff: 'Elena — on prep view; reordered at call',
+      handoff: 'Elena, prep view, reordered',
       log: 'at5k9m2p',
     },
     related: [
