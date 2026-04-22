@@ -1620,12 +1620,16 @@
   }
   .ad-meta-row {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
+    gap: 16px;
     padding: 12px 0;
     border-top: 1px solid rgba(0,0,0,0.05);
     font-size: 13px;
+    line-height: 18px;
   }
+  .ad-meta-row .k { flex-shrink: 0; }
+  .ad-meta-row .v { text-align: right; }
   .ad-meta-row:first-of-type { border-top: none; padding-top: 0; }
   .ad-meta-row .k { color: #888; }
   .ad-meta-row .v { color: #1a1a1a; font-weight: 500; font-variant-numeric: tabular-nums; }
@@ -1640,7 +1644,6 @@
   .ad-meta-row .v.has-tip {
     position: relative;
     border-bottom: 1px dotted rgba(0,0,0,0.28);
-    cursor: help;
     padding-bottom: 1px;
   }
   .ad-meta-row .v.has-tip .tip {
@@ -1678,17 +1681,41 @@
     font-size: 13px;
     line-height: 18px;
     color: #555;
-    padding: 10px 0;
+    padding: 12px 14px;
+    margin: 0 -14px;
     border-top: 1px solid rgba(0,0,0,0.05);
     display: flex;
-    gap: 10px;
-    cursor: pointer;
-    transition: color 0.18s;
+    gap: 12px;
+    border-radius: 10px;
+    cursor: default;
+    transition: background 0.22s var(--ease-out), color 0.18s, padding-left 0.24s var(--ease-spring);
+    position: relative;
   }
-  .ad-related-row:first-of-type { border-top: none; padding-top: 0; }
-  .ad-related-row { cursor: default; }
-  .ad-related-row.is-link { cursor: pointer; }
-  .ad-related-row.is-link:hover { color: #000; border-top-color: transparent; }
+  .ad-related-row:first-of-type { border-top: none; }
+  .ad-related-row.is-link { cursor: pointer; padding-right: 34px; }
+  .ad-related-row.is-link::after {
+    content: "↗";
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translate(-4px, -52%);
+    color: rgba(0,0,0,0.28);
+    font-size: 15px;
+    font-weight: 400;
+    opacity: 0;
+    transition: opacity 0.22s var(--ease-out), transform 0.26s var(--ease-spring), color 0.2s;
+  }
+  .ad-related-row.is-link:hover {
+    background: rgba(0,0,0,0.04);
+    color: #000;
+    border-top-color: transparent;
+    padding-left: 20px;
+  }
+  .ad-related-row.is-link:hover::after {
+    opacity: 1;
+    transform: translate(0, -52%);
+    color: #000;
+  }
   .ad-related-row.is-link:hover + .ad-related-row { border-top-color: transparent; }
   .ad-related-row.is-link:hover .when { color: #555; }
   .ad-related-row .when {
@@ -2306,7 +2333,7 @@ const ACTIVITY_DETAILS = {
     meta: {
       whyNow: { v: 'Market close', tip: 'End-of-quarter positions reconciled from Schwab + Fidelity at market close Mar 30. Automated post-close ingest; no agent judgment in the numbers themselves.' },
       source: { v: 'Portfolio feed · benchmark data', tip: 'End-of-quarter positions from Schwab + Fidelity custodial feeds; S&P 500 benchmark return from the market data feed.' },
-      confidence: { level: 'Very high', pct: '—', tip: 'Deterministic — these are reported figures from authoritative sources, not agent judgments. No confidence interval applies.' },
+      confidence: { level: 'Very high', pct: '99%', tip: 'Deterministic — these are reported figures from authoritative sources, not agent judgments. No confidence interval applies.' },
       handoff: 'Included in Jamie\'s Q1 summary',
       log: 'mc4k2m7p',
     },
@@ -2326,7 +2353,7 @@ const ACTIVITY_DETAILS = {
       whyNow: { v: 'Email reopen event', tip: 'A second open of the same email within 72 hours without a reply fires the reopen-signal flag. Threshold hit Mar 25 at 7:42 PM.' },
       source: { v: 'Email client telemetry', tip: 'Open timestamps, durations, device signatures. Two opens logged: Mar 23 at 10:02 AM (desktop, 54s) and Mar 25 at 7:42 PM (phone, 31s). No replies.' },
       confidence: { level: 'Medium', pct: '84%', tip: 'The "deliberating, not ignoring" read is the likeliest explanation for short repeat opens, but it\'s inference from pattern — not direct confirmation.' },
-      handoff: 'Monitor; next outbound only if he replies',
+      handoff: 'Monitor; reply-gated outbound',
       log: 'em3k8m1p',
     },
     related: [
@@ -2388,7 +2415,7 @@ const ACTIVITY_DETAILS = {
     meta: {
       whyNow: { v: 'Forward event logged', tip: 'Every forward from Jamie\'s account to Adaeze on a financial thread is logged and counted against the rolling 6-week window for pattern detection.' },
       source: { v: 'Email forward telemetry', tip: 'Three forwards in the rolling 6-week window: Feb 3 (Q4 summary, 47s), Feb 24 (savings context, 2 min), Mar 12 (529 thread, 91s). All under 2 minutes from open to forward.' },
-      confidence: { level: 'Very high', pct: '—', tip: 'Deterministic — this is a logged event, not a judgment. The pattern interpretation is scored separately (see the Mar 2 flag entry).' },
+      confidence: { level: 'Very high', pct: '99%', tip: 'Deterministic — this is a logged event, not a judgment. The pattern interpretation is scored separately (see the Mar 2 flag entry).' },
       handoff: 'Feeds the Mar 2 pattern flag',
       log: 'fw8k2m1p',
     },
@@ -2446,8 +2473,8 @@ const ACTIVITY_DETAILS = {
     meta: {
       whyNow: { v: '45-day drift check', tip: 'Any committed allocation change not executed within 45 days fires a drift flag. Rebalance authorized Dec 12, still not executed by Feb 10.' },
       source: { v: 'Portfolio ledger · target bands', tip: 'Live allocation snapshot (intl 12.1%, target 18%), committed rebalance record from the Dec 12 call transcript, aging days since commit.' },
-      confidence: { level: 'Very high', pct: '—', tip: 'Deterministic — allocation drift is a computed number, not a judgment. The recommendation to hold the flag for the next live call is the separately-scored part.' },
-      handoff: 'Elena — raise as planned April execution',
+      confidence: { level: 'Very high', pct: '99%', tip: 'Deterministic — allocation drift is a computed number, not a judgment. The recommendation to hold the flag for the next live call is the separately-scored part.' },
+      handoff: 'Elena — raise as April execution',
       log: 'dr2k8m7p',
     },
     related: [
@@ -2467,7 +2494,7 @@ const ACTIVITY_DETAILS = {
       whyNow: { v: 'Scheduled quarterly call', tip: 'Live call on the calendar. Post-call analysis runs within 2 hours of call end.' },
       source: { v: 'Call transcript · audio · tone analysis', tip: '65-minute audio recording, auto-transcribed, speaker-separated. Vocal tension analysis flagged minute 12 as the affective inflection point when the Q4 dip was raised.' },
       confidence: { level: 'High', pct: '91%', tip: '"Emotional, not strategic" read is supported by three independent cues: vocal tension at min 12, Jamie naming the Q4 dip three times, and the "after taxes" deferral phrasing he\'s used in 4 of his last 5 deferrals.' },
-      handoff: 'Elena — pattern confirmed; Adaeze invite now required',
+      handoff: 'Elena — Adaeze invite now required',
       log: 'ca7p2m8k',
     },
     related: [
@@ -2511,7 +2538,7 @@ const ACTIVITY_DETAILS = {
       whyNow: { v: 'Repeat-open threshold', tip: '4+ opens of a single email within 30 days without a reply triggers the "warm but stuck" flag. Crossed Feb 2 at 7:30 AM.' },
       source: { v: 'Email client telemetry', tip: 'Four open events with timestamps, devices, durations: Jan 15 (28s), Jan 21 (22s), Jan 28 (19s), Feb 2 (24s). All under 30 seconds; zero clicks into the contribution flow.' },
       confidence: { level: 'High', pct: '86%', tip: 'Short-repeat-open pattern with no clicks correlates 85%+ with "considering but deferring" in the advisor-base training set.' },
-      handoff: 'Raise with Adaeze present on the next call',
+      handoff: 'Raise on next call, Adaeze present',
       log: 'em4m7k2p',
     },
     related: [
@@ -2531,7 +2558,7 @@ const ACTIVITY_DETAILS = {
       whyNow: { v: 'Pre-call T-14d', tip: 'Standard 14-day confirmation ping for quarterly calls. Includes an optional soft Adaeze invite unless previously declined.' },
       source: { v: 'Calendar · Adaeze-invite history', tip: 'Upcoming Feb 8 calendar event; two prior soft Adaeze invites (Nov 18 and Jan 5) that were dropped without reply.' },
       confidence: { level: 'High', pct: '90%', tip: 'The soft second invite is standard; what\'s new is the recommendation that any third attempt should be direct by name, not soft.' },
-      handoff: 'Elena — upgrade Adaeze invite for Apr 14',
+      handoff: 'Elena — direct Adaeze invite Apr 14',
       log: 'gr8k3m1p',
     },
     related: [
@@ -2549,8 +2576,8 @@ const ACTIVITY_DETAILS = {
     meta: {
       whyNow: { v: 'Aging trigger (60 days)', tip: 'Any committed item with no progress for 60 days auto-surfaces to the top of the next prep view. Rebalance was committed Dec 12; crossed 60 days on Jan 19 — this is that surfacing.' },
       source: { v: 'Commitment log · prep-view rules', tip: 'Original commitment from Dec 12 call transcript; prep-view priority scoring rules; 2023–24 aging-trigger history showing 60 days is the right calibration for Jamie\'s pattern.' },
-      confidence: { level: 'Very high', pct: '—', tip: 'Deterministic — 60 days is a threshold, not a judgment. The prep-view reorder is the only evaluative part and it\'s rule-based.' },
-      handoff: 'Elena — promoted on prep view (reordered at Feb 8 call)',
+      confidence: { level: 'Very high', pct: '99%', tip: 'Deterministic — 60 days is a threshold, not a judgment. The prep-view reorder is the only evaluative part and it\'s rule-based.' },
+      handoff: 'Elena — on prep view; reordered at call',
       log: 'at5k9m2p',
     },
     related: [
@@ -2612,7 +2639,7 @@ function defaultDetail(key, row) {
     meta: {
       whyNow: { v: 'Routine sync', tip: 'Auto-logged as part of the ongoing signal ingest — no specific trigger beyond the regular data refresh.' },
       source: { v: tagText, tip: 'Primary data source for this event. See body for specifics.' },
-      confidence: { level: 'Medium', pct: '—', tip: 'Default confidence — this entry does not have a rich reasoning trace attached.' },
+      confidence: { level: 'Medium', pct: '70%', tip: 'Default confidence — this entry does not have a rich reasoning trace attached.' },
       handoff: 'Elena, next call prep',
       log: key,
     },
@@ -2643,7 +2670,7 @@ function openDetail(key) {
     </div>
     <div class="ad-meta-row">
       <span class="k">Confidence</span>
-      <span class="v has-tip">${m.confidence.level} · ${m.confidence.pct}<span class="tip">${m.confidence.tip}</span></span>
+      <span class="v has-tip">${m.confidence.level} (${m.confidence.pct})<span class="tip">${m.confidence.tip}</span></span>
     </div>
     <div class="ad-meta-row">
       <span class="k">Handoff</span>
