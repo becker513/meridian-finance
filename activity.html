@@ -1643,6 +1643,9 @@
   }
   .ad-meta-row .v.has-tip {
     position: relative;
+    display: inline-block;
+    text-align: left;
+    max-width: 320px;
     border-bottom: 1px dotted rgba(0,0,0,0.28);
     padding-bottom: 1px;
   }
@@ -2291,7 +2294,7 @@ const ACTIVITY_DETAILS = {
       <p>Recommending the next live call include Adaeze by invitation, not suggestion. Three forwards in six weeks isn't a signal to mention anymore — it's the thing to act on.</p>`,
     meta: {
       whyNow: { v: 'Quarterly close + 2wk', tip: 'Q1 closed Mar 30; next live call Apr 14. Brief assembled in the standard 2-week pre-call window.' },
-      source: { v: '47 threads · 2 calls · 31 portfolio events', tip: '47 inbound/outbound email threads across 12 weeks, 31 portfolio events (Jan rebalance, Feb 8 call, Q1 close), 2 live quarterly calls, plus 3 email forwards to Adaeze.' },
+      source: { v: '47 threads · 31 events · 2 calls', tip: '47 inbound/outbound email threads across 12 weeks, 31 portfolio events (Jan rebalance, Feb 8 call, Q1 close), 2 live quarterly calls, plus 3 email forwards to Adaeze.' },
       confidence: { level: 'High', pct: '92%', tip: 'All three lead recommendations (savings restart, Adaeze on the call, rebalance in April) are supported by at least two independent signals each.' },
       handoff: 'Elena, before Apr 14 call',
       log: 'br21kx9p',
@@ -2368,7 +2371,7 @@ const ACTIVITY_DETAILS = {
       <p>Logging this as the move that ended the quiet stretch. The framing mattered: the ask rate during a stress window is zero, so the only outbound that works is zero-ask. The channel comes back online when you use it for something other than the thing you want.</p>`,
     meta: {
       whyNow: { v: 'Silence T+8 days', tip: '8 days without outbound in an active monitoring window. Standard threshold for a zero-ask "quiet touch" message designed to test channel health.' },
-      source: { v: 'Cadence baseline · 2024 re-engagement log', tip: 'Jamie\'s 14-month reply cadence (3h 12m median); library of 7 prior quiet-touch messages that ended past silence windows.' },
+      source: { v: 'Cadence baseline · 2024 log', tip: 'Jamie\'s 14-month reply cadence (3h 12m median); library of 7 prior quiet-touch messages that ended past silence windows.' },
       confidence: { level: 'High', pct: '87%', tip: 'The "single number, no ask" format ended silence windows in 6 of 7 past attempts with Jamie.' },
       handoff: 'Reply-handling queued',
       log: 'qt2k7p3m',
@@ -2387,7 +2390,7 @@ const ACTIVITY_DETAILS = {
       <p>So: no outbound for seven days. Continue ingesting portfolio and email signal. Resume light prompts only after cadence returns to baseline. Told Elena before the next prep call so she wouldn't misread the silence as disengagement.</p>`,
     meta: {
       whyNow: { v: '72-hour cadence shift', tip: 'Reply median jumped from 3h 12m to 19h 40m and average length dropped from 43 to 8 words over 72 hours. Both metrics together fire the silence-handler rule.' },
-      source: { v: '14mo reply log · silence pattern library', tip: 'Reply-timing and word-count series from Jamie\'s full email history, matched against three prior silence events in 2023–24.' },
+      source: { v: '14mo reply log · silence library', tip: 'Reply-timing and word-count series from Jamie\'s full email history, matched against three prior silence events in 2023–24.' },
       confidence: { level: 'High', pct: '83%', tip: 'The specific three-variable shape (cadence + length + no inbound questions) matches prior silence events that resolved without agent intervention.' },
       handoff: 'Flagged for Elena; no outbound',
       log: 'sh9k4n2j',
@@ -2451,7 +2454,7 @@ const ACTIVITY_DETAILS = {
       <p>Holding all three drafts for the next live call. Awaiting Elena's selection. Recommended draft #2 (most specific, most numeric, least euphemistic). Told Elena to expect the draft in her prep packet ahead of the Feb 8 call; she pushed it under the rebalance item at the last minute.</p>`,
     meta: {
       whyNow: { v: 'Pre-call prep window', tip: 'Draft window opens T-14 days before each live call. Feb 8 call was the target; three drafts completed Feb 16 for Elena\'s review.' },
-      source: { v: '2023–24 accepted phrasings · cadence data', tip: '11 prior money-ask messages Jamie accepted or declined; 0% follow-through rate on text-channel money asks in 2023–24; Dec and Jan call transcripts showing soft "yes" in live channel.' },
+      source: { v: 'Accepted phrasings · cadence', tip: '11 prior money-ask messages Jamie accepted or declined; 0% follow-through rate on text-channel money asks in 2023–24; Dec and Jan call transcripts showing soft "yes" in live channel.' },
       confidence: { level: 'High', pct: '85%', tip: 'Draft #2 (numeric, pick-a-date) mirrors the Nov 2024 phrasing that produced Jamie\'s only completed restart. Format is proven; execution depends on live-channel use.' },
       handoff: 'Held for Elena\'s approval',
       log: 'dc5k9m2p',
@@ -2490,7 +2493,7 @@ const ACTIVITY_DETAILS = {
       <p>Logged the call, flagged the rebalance commitment as now second-time stalled, noted the Adaeze absence as now third call without her despite involvement signals. The pattern is no longer ambiguous.</p>`,
     meta: {
       whyNow: { v: 'Scheduled quarterly call', tip: 'Live call on the calendar. Post-call analysis runs within 2 hours of call end.' },
-      source: { v: 'Call transcript · audio · tone analysis', tip: '65-minute audio recording, auto-transcribed, speaker-separated. Vocal tension analysis flagged minute 12 as the affective inflection point when the Q4 dip was raised.' },
+      source: { v: 'Transcript · tone analysis', tip: '65-minute audio recording, auto-transcribed, speaker-separated. Vocal tension analysis flagged minute 12 as the affective inflection point when the Q4 dip was raised.' },
       confidence: { level: 'High', pct: '91%', tip: '"Emotional, not strategic" read is supported by three independent cues: vocal tension at min 12, Jamie naming the Q4 dip three times, and the "after taxes" deferral phrasing he\'s used in 4 of his last 5 deferrals.' },
       handoff: 'Elena — Adaeze invite now required',
       log: 'ca7p2m8k',
@@ -2610,7 +2613,7 @@ const ACTIVITY_DETAILS = {
       <p>He replied <em>"appreciate it"</em> 47 minutes later. Short, warm, no questions back. Logging this as the cadence baseline I'll measure against when he goes quiet in March — three-word positive reply is the healthy end of his range.</p>`,
     meta: {
       whyNow: { v: 'YTD milestone crossed', tip: 'Portfolio crossed +10% YTD at market close Jan 12. Milestone notes trigger automatically at 5%, 10%, 15%, 20% YTD crossings.' },
-      source: { v: 'Daily return series · reply history', tip: 'Rolling YTD series from the portfolio feed; prior positive-note history showing Jamie\'s reply length to warm/short/long notes (short wins).' },
+      source: { v: 'Returns series · replies', tip: 'Rolling YTD series from the portfolio feed; prior positive-note history showing Jamie\'s reply length to warm/short/long notes (short wins).' },
       confidence: { level: 'High', pct: '91%', tip: 'The two-sentence format and retirement-target framing both index above baseline in Jamie\'s own response history for positive notes.' },
       handoff: 'Logged as cadence baseline',
       log: 'mn2k7p4m',
