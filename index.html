@@ -198,7 +198,7 @@
   .sidebar:not(.expanded) .search-input { display: none; }
 
   .nav-section { display: flex; flex-direction: column; gap: 2px; }
-  .nav-item svg { width: 20px; height: 20px; color: #666; flex-shrink: 0; }
+  .nav-item svg { width: 20px; height: 20px; color: #666; flex-shrink: 0; transition: color 0.22s cubic-bezier(0.22, 1, 0.36, 1); }
   .nav-item.active svg { color: var(--amber); }
   .nav-label {
     font-family: var(--sans);
@@ -213,6 +213,7 @@
   }
   .sidebar.expanded .nav-label { opacity: 1; transition-delay: 0.15s; }
   .sidebar:not(.expanded) .nav-label { display: none; }
+  .nav-label { transition: color 0.22s cubic-bezier(0.22, 1, 0.36, 1); }
   .nav-item.active .nav-label { color: var(--amber); font-weight: 600; }
 
   .pat-section { display: none; flex-direction: column; gap: 2px; }
@@ -315,10 +316,10 @@
     justify-content: center;
     border-radius: 8px;
     flex-shrink: 0;
-    transition: background 0.18s, color 0.18s, opacity 0.2s;
+    transition: background 0.18s, color 0.18s, opacity 0.24s cubic-bezier(0.22, 1, 0.36, 1), transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
   }
-  .sidebar.expanded .me-logout { display: flex; opacity: 0; }
-  .sidebar.expanded .me:hover .me-logout { opacity: 1; }
+  .sidebar.expanded .me-logout { display: flex; opacity: 0; transform: translateX(4px); }
+  .sidebar.expanded .me:hover .me-logout { opacity: 1; transform: translateX(0); transition-delay: 60ms; }
   .me-logout:hover { background: rgba(0,0,0,0.06); color: #000; }
   .me-logout svg { width: 16px; height: 16px; }
 
@@ -878,6 +879,10 @@
     box-shadow: var(--shadow-card-hover);
     transform: translateY(-1px);
   }
+  .row-btn:active {
+    transform: translateY(0) scale(0.992);
+    transition-duration: 0.12s, 0.12s;
+  }
   .row-btn:hover .row-arrow { transform: translateX(3px); color: #000; }
   .row-icon {
     width: 48px; height: 48px;
@@ -1010,7 +1015,8 @@
     transition: background 0.18s var(--ease-out), gap 0.2s var(--ease-out);
   }
   .side-deeplink:hover { background: rgba(0,0,0,0.07); gap: 10px; }
-  .side-deeplink svg { width: 13px; height: 13px; }
+  .side-deeplink svg { width: 13px; height: 13px; transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1); }
+  .side-deeplink:hover svg { transform: translate(2px, -2px); }
 
   .side-divider {
     margin: 30px 16px 14px;
