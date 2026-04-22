@@ -48,7 +48,7 @@
     /* 4px baseline grid — all line-heights & vertical rhythm snap to multiples */
     --base: 4px;
   }
-  body { line-height: 20px; }
+  body { line-height: 20px; text-wrap: pretty; }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
@@ -303,7 +303,7 @@
     margin: 0 -12px 12px;
     margin-top: auto;
   }
-  .sidebar.expanded .me-divider { margin: 0 -14px 12px; margin-top: auto; }
+  .sidebar.expanded .me-divider { margin: 0 -14px 0; margin-top: auto; }
   .me .pat-avatar {
     width: 36px;
     height: 36px;
@@ -328,9 +328,16 @@
   }
   .sidebar.expanded .me-name { opacity: 1; transition-delay: 0.15s; }
   .sidebar:not(.expanded) .me-name { display: none; }
+  .sidebar.expanded .me {
+    background: #fff;
+    margin: 0 -14px;
+    padding: 0 14px;
+    height: 64px;
+    border-radius: 0;
+  }
   .sidebar.expanded .me:hover {
     background: #fff;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+    box-shadow: none;
   }
   .sidebar.expanded .me:hover .me-logout {
     opacity: 1;
@@ -2296,7 +2303,7 @@ const ACTIVITY_DETAILS = {
       <p>Recommending the next live call include Adaeze by invitation, not suggestion. Three forwards in six weeks isn't a signal to mention anymore — it's the thing to act on.</p>`,
     meta: {
       whyNow: { v: 'Quarterly close + 2wk', tip: 'Q1 closed Mar 30; next live call Apr 14. Brief assembled in the standard 2-week pre-call window.' },
-      source: { v: '47 threads · 31 events · 2 calls', tip: '47 inbound/outbound email threads across 12 weeks, 31 portfolio events (Jan rebalance, Feb 8 call, Q1 close), 2 live quarterly calls, plus 3 email forwards to Adaeze.' },
+      source: { v: '47 threads · 31 events', tip: '47 inbound/outbound email threads across 12 weeks, 31 portfolio events (Jan rebalance, Feb 8 call, Q1 close), 2 live quarterly calls, plus 3 email forwards to Adaeze.' },
       confidence: { level: 'High', pct: '92%', tip: 'All three lead recommendations (savings restart, Adaeze on the call, rebalance in April) are supported by at least two independent signals each.' },
       handoff: 'Elena, before Apr 14 call',
       log: 'br21kx9p',
