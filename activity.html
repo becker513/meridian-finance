@@ -145,7 +145,7 @@
   .sidebar .me:hover {
     background: rgba(0,0,0,0.05);
   }
-  .sidebar .nav-item.active { background: rgba(0,0,0,0.07); color: #000; }
+  .sidebar .nav-item.active { background: rgba(29,78,216,0.10); color: var(--amber); }
   .sidebar .pat-row.active { background: rgba(0,0,0,0.07); }
 
   /* Workspace mark */
@@ -154,7 +154,7 @@
   .ws-mark {
     width: 36px; height: 36px;
     border-radius: 10px;
-    background: #000;
+    background: var(--amber);
     color: #fff;
     display: flex;
     align-items: center;
@@ -222,7 +222,7 @@
   /* Nav items */
   .nav-section { display: flex; flex-direction: column; gap: 2px; }
   .nav-item svg { width: 20px; height: 20px; color: #666; flex-shrink: 0; }
-  .nav-item.active svg { color: #000; }
+  .nav-item.active svg { color: var(--amber); }
   .nav-label {
     font-family: var(--sans);
     font-size: 14px;
@@ -236,7 +236,7 @@
   }
   .sidebar.expanded .nav-label { opacity: 1; transition-delay: 0.15s; }
   .sidebar:not(.expanded) .nav-label { display: none; }
-  .nav-item.active .nav-label { color: #000; font-weight: 600; }
+  .nav-item.active .nav-label { color: var(--amber); font-weight: 600; }
 
   /* Patient section — only in expanded state */
   .pat-section {
@@ -276,7 +276,7 @@
     overflow: hidden;
   }
   .pat-avatar img { width: 100%; height: 100%; object-fit: cover; }
-  .pat-row.active .pat-avatar { background: #000; color: #fff; }
+  .pat-row.active .pat-avatar { background: var(--amber); color: #fff; }
   .pat-name {
     flex: 1;
     margin-left: 12px;
@@ -308,6 +308,10 @@
     width: 36px;
     height: 36px;
     border-radius: 50%;
+    background: var(--amber);
+    color: #fff;
+    font-weight: 600;
+    font-size: 13px;
   }
   .me .pat-avatar img { border-radius: 50%; }
   .me-name {
@@ -1419,7 +1423,8 @@
     background: rgba(0,0,0,0.022);
     padding-left: 24px;
   }
-  .activity-row:hover::after { opacity: 0; }
+  .activity-row:hover::after,
+  .activity-row:has(+ .activity-row:hover)::after { opacity: 0; }
   /* Stagger the entrance — 30ms per row */
   .activity-row:nth-of-type(1)  { animation-delay: 0.05s; }
   .activity-row:nth-of-type(2)  { animation-delay: 0.08s; }
@@ -1632,6 +1637,43 @@
     padding: 2px 6px;
     border-radius: 4px;
   }
+  .ad-meta-row .v.has-tip {
+    position: relative;
+    border-bottom: 1px dotted rgba(0,0,0,0.28);
+    cursor: help;
+    padding-bottom: 1px;
+  }
+  .ad-meta-row .v.has-tip .tip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 0;
+    background: #1a1a1a;
+    color: #fff;
+    padding: 10px 13px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 400;
+    line-height: 18px;
+    letter-spacing: -0.05px;
+    width: 280px;
+    white-space: normal;
+    text-align: left;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(4px);
+    transition: opacity 0.18s var(--ease-out), transform 0.22s var(--ease-out);
+    z-index: 100;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+  }
+  .ad-meta-row .v.has-tip:hover .tip {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .ad-meta-row.ad-meta-foot {
+    border-top: 1px solid rgba(0,0,0,0.10);
+    margin-top: 6px;
+    padding-top: 14px;
+  }
   .ad-related-row {
     font-size: 13px;
     line-height: 18px;
@@ -1644,7 +1686,11 @@
     transition: color 0.18s;
   }
   .ad-related-row:first-of-type { border-top: none; padding-top: 0; }
-  .ad-related-row:hover { color: #000; }
+  .ad-related-row { cursor: default; }
+  .ad-related-row.is-link { cursor: pointer; }
+  .ad-related-row.is-link:hover { color: #000; border-top-color: transparent; }
+  .ad-related-row.is-link:hover + .ad-related-row { border-top-color: transparent; }
+  .ad-related-row.is-link:hover .when { color: #555; }
   .ad-related-row .when {
     color: var(--text-tertiary);
     font-variant-numeric: tabular-nums;
@@ -2218,11 +2264,17 @@ const ACTIVITY_DETAILS = {
     body: `<p>Pulled twelve weeks of signal into a single brief for Elena's May 12 check-in: 47 inbound/outbound threads, 31 portfolio events, two live calls, three email forwards to Adaeze, and eighteen days of reply-cadence shifts.</p>
       <p>The hierarchy is intentional. Lead with <strong>+11.4% YTD</strong> — Jamie is going to open this brief expecting to be asked for something, and that's a worse opening than the truth. Then name the twin stories out loud: the savings restart still hasn't moved, and Adaeze is making the calls without being in the room.</p>
       <p>Recommending the next live call include Adaeze by invitation, not suggestion. Three forwards in six weeks isn't a signal to mention anymore — it's the thing to act on.</p>`,
-    meta: { status: 'Complete', trigger: 'Quarterly close + 2wk', source: 'Agent', workflow: 'call-prep v3', confidence: '0.92', session: 'br21kx9p…7f2c4' },
+    meta: {
+      whyNow: { v: 'Quarterly close + 2wk', tip: 'Q1 closed Mar 30; next live call Apr 14. Brief assembled in the standard 2-week pre-call window.' },
+      source: { v: '47 threads · 2 calls · 31 portfolio events', tip: '47 inbound/outbound email threads across 12 weeks, 31 portfolio events (Jan rebalance, Feb 8 call, Q1 close), 2 live quarterly calls, plus 3 email forwards to Adaeze.' },
+      confidence: { level: 'High', pct: '92%', tip: 'All three lead recommendations (savings restart, Adaeze on the call, rebalance in April) are supported by at least two independent signals each.' },
+      handoff: 'Elena, before Apr 14 call',
+      log: 'br21kx9p',
+    },
     related: [
-      { when: 'Mar 30', text: 'Sent the Q1 performance summary' },
-      { when: 'Mar 2', text: 'Flagged the third email forward to Adaeze' },
-      { when: 'Feb 16', text: 'Drafted savings restart language' },
+      { when: 'Mar 30', text: 'Sent the Q1 performance summary', key: 'mar30-q1summary' },
+      { when: 'Mar 2', text: 'Flagged the third email forward to Adaeze', key: 'mar16-forward' },
+      { when: 'Feb 16', text: 'Drafted savings restart language', key: 'mar9-draft' },
     ],
   },
   'mar30-q1summary': {
@@ -2232,11 +2284,17 @@ const ACTIVITY_DETAILS = {
       <p>Framed it declarative, not celebratory. Lead line: <em>"Q1 is in. You're up 11.4%, ahead of the benchmark by 3.6 points. Full detail attached."</em> Personal note at the bottom referenced the private school decision we'd discussed in February — one sentence, no ask.</p>
       <div class="ad-quote">(no reply)</div>
       <p>He opened it twice in 48 hours — first at 10:02 AM from desktop, then at 7:42 PM from phone. Each open under a minute. No click through to the portfolio detail. Reading it as deliberation, not disinterest. He's holding on something — probably the school cost, probably the savings ask he knows is queued behind this note.</p>`,
-    meta: { status: 'Complete', trigger: 'Quarterly close', source: 'Agent', workflow: 'quarterly-summary v2', confidence: '0.93', session: 'qs7a4ex2…9de18' },
+    meta: {
+      whyNow: { v: 'Quarter close', tip: 'Q1 books closed at 8:31 AM on Mar 30. Outbound window opens in the hour after close; send timing calibrated to Jamie\'s morning routine.' },
+      source: { v: 'Q1 ledger · 14mo reply history', tip: 'Final portfolio close figures from the ledger; 14 months of Jamie\'s reply cadence and tone responses to calibrate the framing and send time.' },
+      confidence: { level: 'High', pct: '93%', tip: 'The declarative-not-celebratory framing is the format that performed best in Jamie\'s 2024 response history for similar good-news notes.' },
+      handoff: 'Logged for Apr 14 call prep',
+      log: 'qs7a4ex2',
+    },
     related: [
-      { when: 'Mar 30', text: 'Q1 booked at +11.4% YTD' },
-      { when: 'Mar 25', text: 'Jamie reopened the Q1 summary — still no reply' },
-      { when: 'Mar 16', text: 'Shifted to passive monitoring' },
+      { when: 'Mar 30', text: 'Q1 booked at +11.4% YTD', key: 'mar30-close' },
+      { when: 'Mar 25', text: 'Jamie reopened the Q1 summary — still no reply', key: 'mar25-reopen' },
+      { when: 'Mar 16', text: 'Shifted to passive monitoring', key: 'mar23-passive' },
     ],
   },
   'mar30-close': {
@@ -2245,11 +2303,17 @@ const ACTIVITY_DETAILS = {
     body: `<p>Portfolio closed Q1 at <strong>+11.4%</strong>. Benchmark S&amp;P 500 returned +7.8% over the same period. Outperformance: <strong>+3.6 points</strong>, driven largely by the January rebalance that was executed on time despite the subsequent drift.</p>
       <p>Key contributors: tech overweight (+4.2pt contribution), international developed (+2.1pt), short-duration treasuries unchanged, international allocation still below target band by 6 points as of March 30.</p>
       <p>The accuracy of the January call bought a credit Jamie hasn't cashed yet. Elena will want to reference this number in the next live call, but I'd advise against leading with it — Jamie reads portfolio wins as implicit permission to defer the savings ask, and we've seen that cycle twice already this fiscal year.</p>`,
-    meta: { status: 'Complete', trigger: 'Market close Q1', source: 'Market feed', workflow: 'quarterly-close v1', confidence: '—', session: 'mc4k2m7p…3f1b5' },
+    meta: {
+      whyNow: { v: 'Market close', tip: 'End-of-quarter positions reconciled from Schwab + Fidelity at market close Mar 30. Automated post-close ingest; no agent judgment in the numbers themselves.' },
+      source: { v: 'Portfolio feed · benchmark data', tip: 'End-of-quarter positions from Schwab + Fidelity custodial feeds; S&P 500 benchmark return from the market data feed.' },
+      confidence: { level: 'Very high', pct: '—', tip: 'Deterministic — these are reported figures from authoritative sources, not agent judgments. No confidence interval applies.' },
+      handoff: 'Included in Jamie\'s Q1 summary',
+      log: 'mc4k2m7p',
+    },
     related: [
-      { when: 'Mar 30', text: 'Sent the Q1 performance summary' },
-      { when: 'Feb 10', text: 'Portfolio rebalance — still stalled 45 days in' },
-      { when: 'Jan 12', text: 'Celebrated crossing +10% YTD' },
+      { when: 'Mar 30', text: 'Sent the Q1 performance summary', key: 'mar30-q1summary' },
+      { when: 'Feb 10', text: 'Portfolio rebalance — still stalled 45 days in', key: 'feb10-rebalance' },
+      { when: 'Jan 12', text: 'Celebrated crossing +10% YTD', key: 'feb16-celebrate' },
     ],
   },
   'mar25-reopen': {
@@ -2258,10 +2322,16 @@ const ACTIVITY_DETAILS = {
     body: `<p>Second open at 7:42 PM, from phone, duration 31 seconds. First open was Mar 23 at 10:02 AM from desktop, duration 54 seconds.</p>
       <p>Two opens, zero clicks into the detailed breakdown, no reply. The pattern I track here is <em>dwell without action</em>: an open under 60 seconds without a click usually means he's scanning for the number and not reading the context. The second open after 48 hours usually means something specific is nagging — he's not re-reading for pleasure.</p>
       <p>Best read: he's deciding how to respond. The two most likely drafts in his head are (a) thank-you + punt, or (b) ask about the private school math. I'm holding outbound. If he replies (a), I'll send the one-line savings restart draft. If (b), I'll forward the 529 follow-up and ask Elena to put Adaeze on the next call.</p>`,
-    meta: { status: 'Observed', trigger: 'Email reopen signal', source: 'Agent', workflow: 'email-signal v2', confidence: '0.84', session: 'em3k8m1p…4c7e9' },
+    meta: {
+      whyNow: { v: 'Email reopen event', tip: 'A second open of the same email within 72 hours without a reply fires the reopen-signal flag. Threshold hit Mar 25 at 7:42 PM.' },
+      source: { v: 'Email client telemetry', tip: 'Open timestamps, durations, device signatures. Two opens logged: Mar 23 at 10:02 AM (desktop, 54s) and Mar 25 at 7:42 PM (phone, 31s). No replies.' },
+      confidence: { level: 'Medium', pct: '84%', tip: 'The "deliberating, not ignoring" read is the likeliest explanation for short repeat opens, but it\'s inference from pattern — not direct confirmation.' },
+      handoff: 'Monitor; next outbound only if he replies',
+      log: 'em3k8m1p',
+    },
     related: [
-      { when: 'Mar 30', text: 'Sent the Q1 performance summary' },
-      { when: 'Mar 20', text: 'Sent a quiet portfolio snapshot' },
+      { when: 'Mar 30', text: 'Sent the Q1 performance summary', key: 'mar30-q1summary' },
+      { when: 'Mar 20', text: 'Sent a quiet portfolio snapshot', key: 'mar20-snapshot' },
     ],
   },
   'mar20-snapshot': {
@@ -2271,10 +2341,16 @@ const ACTIVITY_DETAILS = {
       <div class="ad-quote">"One number for your Friday: +9.8% YTD. Nothing to do. — Elena"</div>
       <p>Jamie opened 18 minutes later, replied <em>"thanks"</em>. Short, flat, but present — first response in nine days. Cadence returning to baseline.</p>
       <p>Logging this as the move that ended the quiet stretch. The framing mattered: the ask rate during a stress window is zero, so the only outbound that works is zero-ask. The channel comes back online when you use it for something other than the thing you want.</p>`,
-    meta: { status: 'Complete', trigger: 'Silence T+8 days', source: 'Agent', workflow: 'quiet-touch v2', confidence: '0.87', session: 'qt2k7p3m…5d8a1' },
+    meta: {
+      whyNow: { v: 'Silence T+8 days', tip: '8 days without outbound in an active monitoring window. Standard threshold for a zero-ask "quiet touch" message designed to test channel health.' },
+      source: { v: 'Cadence baseline · 2024 re-engagement log', tip: 'Jamie\'s 14-month reply cadence (3h 12m median); library of 7 prior quiet-touch messages that ended past silence windows.' },
+      confidence: { level: 'High', pct: '87%', tip: 'The "single number, no ask" format ended silence windows in 6 of 7 past attempts with Jamie.' },
+      handoff: 'Reply-handling queued',
+      log: 'qt2k7p3m',
+    },
     related: [
-      { when: 'Mar 16', text: 'Shifted to passive monitoring' },
-      { when: 'Mar 25', text: 'Jamie reopened the Q1 summary — still no reply' },
+      { when: 'Mar 16', text: 'Shifted to passive monitoring', key: 'mar23-passive' },
+      { when: 'Mar 25', text: 'Jamie reopened the Q1 summary — still no reply', key: 'mar25-reopen' },
     ],
   },
   'mar23-passive': {
@@ -2284,11 +2360,17 @@ const ACTIVITY_DETAILS = {
       <p>Two options. Send the next queued touch (the savings draft was ready) or hold. I held.</p>
       <p>The pattern in Jamie's file says reminders during a stress window don't land — they get read as pressure, filed, and deepen the retreat. The pattern also says he comes back to the channel when there's something quiet to come back to: a number, a clean touch with no ask behind it. That's what I sent on March 20.</p>
       <p>So: no outbound for seven days. Continue ingesting portfolio and email signal. Resume light prompts only after cadence returns to baseline. Told Elena before the next prep call so she wouldn't misread the silence as disengagement.</p>`,
-    meta: { status: 'Decision · Hold', trigger: '72hr cadence shift', source: 'Agent', workflow: 'silence-handler v3', confidence: '0.83', session: 'sh9k4n2j…b7c3e' },
+    meta: {
+      whyNow: { v: '72-hour cadence shift', tip: 'Reply median jumped from 3h 12m to 19h 40m and average length dropped from 43 to 8 words over 72 hours. Both metrics together fire the silence-handler rule.' },
+      source: { v: '14mo reply log · silence pattern library', tip: 'Reply-timing and word-count series from Jamie\'s full email history, matched against three prior silence events in 2023–24.' },
+      confidence: { level: 'High', pct: '83%', tip: 'The specific three-variable shape (cadence + length + no inbound questions) matches prior silence events that resolved without agent intervention.' },
+      handoff: 'Flagged for Elena; no outbound',
+      log: 'sh9k4n2j',
+    },
     related: [
-      { when: 'Mar 20', text: 'Sent a quiet portfolio snapshot' },
-      { when: 'Mar 2', text: 'Flagged the third email forward to Adaeze' },
-      { when: 'Mar 30', text: 'Sent the Q1 performance summary' },
+      { when: 'Mar 20', text: 'Sent a quiet portfolio snapshot', key: 'mar20-snapshot' },
+      { when: 'Mar 2', text: 'Flagged the third email forward to Adaeze', key: 'mar16-forward' },
+      { when: 'Mar 30', text: 'Sent the Q1 performance summary', key: 'mar30-q1summary' },
     ],
   },
   'mar12-fwd': {
@@ -2303,10 +2385,16 @@ const ACTIVITY_DETAILS = {
       </ul>
       <p>Three forwards in 36 days. Each under two minutes from open to forward — he's not deliberating, he's routing. Adaeze is reading every exchange on financial decisions without being cc'd.</p>
       <p>This is the data that triggers the Mar 2 escalation flag (the agent's "Flagged the third email forward" entry). The pattern isn't "spouse is involved," it's "spouse is the decision-maker and Jamie is acting as the interface." Different fact, different move.</p>`,
-    meta: { status: 'Observed', trigger: 'Email forward event', source: 'Agent', workflow: 'forward-signal v2', confidence: '—', session: 'fw8k2m1p…6a9c3' },
+    meta: {
+      whyNow: { v: 'Forward event logged', tip: 'Every forward from Jamie\'s account to Adaeze on a financial thread is logged and counted against the rolling 6-week window for pattern detection.' },
+      source: { v: 'Email forward telemetry', tip: 'Three forwards in the rolling 6-week window: Feb 3 (Q4 summary, 47s), Feb 24 (savings context, 2 min), Mar 12 (529 thread, 91s). All under 2 minutes from open to forward.' },
+      confidence: { level: 'Very high', pct: '—', tip: 'Deterministic — this is a logged event, not a judgment. The pattern interpretation is scored separately (see the Mar 2 flag entry).' },
+      handoff: 'Feeds the Mar 2 pattern flag',
+      log: 'fw8k2m1p',
+    },
     related: [
-      { when: 'Mar 2', text: 'Flagged the third email forward to Adaeze' },
-      { when: 'Feb 2', text: 'Jamie opened the 529 contribution email four times' },
+      { when: 'Mar 2', text: 'Flagged the third email forward to Adaeze', key: 'mar16-forward' },
+      { when: 'Feb 2', text: 'Jamie opened the 529 contribution email four times', key: 'mar2-529opens' },
     ],
   },
   'mar16-forward': {
@@ -2316,11 +2404,17 @@ const ACTIVITY_DETAILS = {
       <p>Logged the pattern to Elena's prep file with explicit framing: <em>Adaeze is reading every financial decision thread within two minutes of Jamie opening it. She's not absent. She's upstream of the nod Jamie gives on calls, and the nod isn't authoritative.</em></p>
       <p>Recommended action for the next live call: Elena invites Adaeze directly, by name, not as "you're welcome to bring your partner." Framed as needing her input on the private school decision, which gives her a specific reason that's independent of the savings ask. If Jamie declines, that's data too.</p>
       <p>The finance version of a pattern match — same shape I've tracked in other relationships where one partner holds the ledger and the other holds the decisions. The only reliable move is to put both in the room.</p>`,
-    meta: { status: 'Decision · Escalate', trigger: 'Forward pattern (3/6wk)', source: 'Agent', workflow: 'pattern-detector v4', confidence: '0.89', session: 'pd4m7k3n…9c8d6' },
+    meta: {
+      whyNow: { v: 'Forward pattern (3 in 6wk)', tip: 'Three forwards in a rolling 6-week window crosses the "spouse-as-decision-maker" threshold in Elena\'s prep rules. Crossed Mar 12 at 6:48 AM.' },
+      source: { v: 'Forward log · Elena\'s prep rules', tip: 'Three forward events (Feb 3, Feb 24, Mar 12); prior 2023–24 pattern data confirming forwards correlate with decisions deferred "until spouse sees it."' },
+      confidence: { level: 'High', pct: '89%', tip: 'The forward-as-decision-maker signal runs at 88% precision in the advisor-base training set. Low false-positive rate for this specific shape.' },
+      handoff: 'Elena, for Apr 14 agenda',
+      log: 'pd4m7k3n',
+    },
     related: [
-      { when: 'Mar 12', text: 'Jamie forwarded thread to Adaeze — third time in six weeks' },
-      { when: 'Feb 16', text: 'Drafted savings restart language' },
-      { when: 'Feb 8', text: 'Quarterly call — pulled $40K in gains forward against advice' },
+      { when: 'Mar 12', text: 'Jamie forwarded thread to Adaeze — third time in six weeks', key: 'mar12-fwd' },
+      { when: 'Feb 16', text: 'Drafted savings restart language', key: 'mar9-draft' },
+      { when: 'Feb 8', text: 'Quarterly call — pulled $40K in gains forward against advice', key: 'feb8-q4dip' },
     ],
   },
   'mar9-draft': {
@@ -2330,11 +2424,17 @@ const ACTIVITY_DETAILS = {
       <div class="ad-quote">"14% → 6% → target 12%. Restart date: [blank]. We put the number on screen, Jamie picks the date before the call ends."</div>
       <p>Drafts compared against Jamie's prior accepted phrasings from 2023–2024. He responds to specific numbers, not ranges. He responds to "pick a date" better than "when do you want to start." He does not respond to money asks delivered in text — zero historical follow-through on savings asks made outside a live channel.</p>
       <p>Holding all three drafts for the next live call. Awaiting Elena's selection. Recommended draft #2 (most specific, most numeric, least euphemistic). Told Elena to expect the draft in her prep packet ahead of the Feb 8 call; she pushed it under the rebalance item at the last minute.</p>`,
-    meta: { status: 'Held · Awaiting approval', trigger: 'Pre-call prep window', source: 'Agent', workflow: 'draft-compare v3', confidence: '0.85', session: 'dc5k9m2p…4a7b3' },
+    meta: {
+      whyNow: { v: 'Pre-call prep window', tip: 'Draft window opens T-14 days before each live call. Feb 8 call was the target; three drafts completed Feb 16 for Elena\'s review.' },
+      source: { v: '2023–24 accepted phrasings · cadence data', tip: '11 prior money-ask messages Jamie accepted or declined; 0% follow-through rate on text-channel money asks in 2023–24; Dec and Jan call transcripts showing soft "yes" in live channel.' },
+      confidence: { level: 'High', pct: '85%', tip: 'Draft #2 (numeric, pick-a-date) mirrors the Nov 2024 phrasing that produced Jamie\'s only completed restart. Format is proven; execution depends on live-channel use.' },
+      handoff: 'Held for Elena\'s approval',
+      log: 'dc5k9m2p',
+    },
     related: [
-      { when: 'Feb 8', text: 'Quarterly call — pulled $40K in gains forward against advice' },
-      { when: 'Feb 5', text: 'Pre-call brief assembled for Elena' },
-      { when: 'Jan 19', text: 'Auto-surfaced the January rebalance commitment' },
+      { when: 'Feb 8', text: 'Quarterly call — pulled $40K in gains forward against advice', key: 'feb8-q4dip' },
+      { when: 'Feb 5', text: 'Pre-call brief assembled for Elena', key: 'feb5-prep' },
+      { when: 'Jan 19', text: 'Auto-surfaced the January rebalance commitment', key: 'feb23-stalled' },
     ],
   },
   'feb10-rebalance': {
@@ -2343,10 +2443,16 @@ const ACTIVITY_DETAILS = {
     body: `<p>Rebalance authorized Dec 12, queued for January execution, deferred at the Feb 8 call when Jamie pulled $40K in gains forward instead. As of this morning, international developed allocation is <strong>6 points below target band</strong> (target 18%, actual 12.1%).</p>
       <p>No immediate risk. The drift is real and compounding — every week the allocation stays out of band, the rebalancing tax cost grows and the tracking error widens. Not a number that shows up in the YTD print, but it will show up in the Q3 review.</p>
       <p>I'm not surfacing this as urgent. Surfacing it as <em>still stalled, aging</em> — which is the prep-file flag I set on Jan 19 at the 60-day aging trigger. Elena can decide whether to raise it in the next touch or hold it for the May live call. My recommendation: hold it. The savings restart is the bigger fight this quarter and raising both in one call is how both get deferred.</p>`,
-    meta: { status: 'Flagged · Aging', trigger: '45-day drift check', source: 'Portfolio ledger', workflow: 'drift-monitor v2', confidence: '—', session: 'dr2k8m7p…3b9c1' },
+    meta: {
+      whyNow: { v: '45-day drift check', tip: 'Any committed allocation change not executed within 45 days fires a drift flag. Rebalance authorized Dec 12, still not executed by Feb 10.' },
+      source: { v: 'Portfolio ledger · target bands', tip: 'Live allocation snapshot (intl 12.1%, target 18%), committed rebalance record from the Dec 12 call transcript, aging days since commit.' },
+      confidence: { level: 'Very high', pct: '—', tip: 'Deterministic — allocation drift is a computed number, not a judgment. The recommendation to hold the flag for the next live call is the separately-scored part.' },
+      handoff: 'Elena — raise as planned April execution',
+      log: 'dr2k8m7p',
+    },
     related: [
-      { when: 'Jan 19', text: 'Auto-surfaced the January rebalance commitment' },
-      { when: 'Feb 8', text: 'Quarterly call — pulled $40K in gains forward against advice' },
+      { when: 'Jan 19', text: 'Auto-surfaced the January rebalance commitment', key: 'feb23-stalled' },
+      { when: 'Feb 8', text: 'Quarterly call — pulled $40K in gains forward against advice', key: 'feb8-q4dip' },
     ],
   },
   'feb8-q4dip': {
@@ -2357,11 +2463,17 @@ const ACTIVITY_DETAILS = {
       <p>Audio analysis: Jamie's tone shifted at minute 12 when Elena referenced the December drawdown. Vocal tension held through minute 34, resolved when Elena moved off performance onto the savings restart. That was the tell — the Q4 decision was emotional, not strategic. He was protecting against a feeling, not managing a position.</p>
       <p>Savings restart deferred again. His phrasing: <em>"after taxes, once we see what the school bill looks like."</em> The private-school decision is doing the work of <em>reasonable-sounding deferral</em> — it's the external reason he reaches for every time the ask lands.</p>
       <p>Logged the call, flagged the rebalance commitment as now second-time stalled, noted the Adaeze absence as now third call without her despite involvement signals. The pattern is no longer ambiguous.</p>`,
-    meta: { status: 'Complete', trigger: 'Quarterly call Feb 8', source: 'Call transcript + audio', workflow: 'call-analysis v3', confidence: '0.91', session: 'ca7p2m8k…3d4e9' },
+    meta: {
+      whyNow: { v: 'Scheduled quarterly call', tip: 'Live call on the calendar. Post-call analysis runs within 2 hours of call end.' },
+      source: { v: 'Call transcript · audio · tone analysis', tip: '65-minute audio recording, auto-transcribed, speaker-separated. Vocal tension analysis flagged minute 12 as the affective inflection point when the Q4 dip was raised.' },
+      confidence: { level: 'High', pct: '91%', tip: '"Emotional, not strategic" read is supported by three independent cues: vocal tension at min 12, Jamie naming the Q4 dip three times, and the "after taxes" deferral phrasing he\'s used in 4 of his last 5 deferrals.' },
+      handoff: 'Elena — pattern confirmed; Adaeze invite now required',
+      log: 'ca7p2m8k',
+    },
     related: [
-      { when: 'Feb 16', text: 'Drafted savings restart language' },
-      { when: 'Feb 10', text: 'Portfolio rebalance — still stalled 45 days in' },
-      { when: 'Mar 2', text: 'Flagged the third email forward to Adaeze' },
+      { when: 'Feb 16', text: 'Drafted savings restart language', key: 'mar9-draft' },
+      { when: 'Feb 10', text: 'Portfolio rebalance — still stalled 45 days in', key: 'feb10-rebalance' },
+      { when: 'Mar 2', text: 'Flagged the third email forward to Adaeze', key: 'mar16-forward' },
     ],
   },
   'feb5-prep': {
@@ -2377,10 +2489,16 @@ const ACTIVITY_DETAILS = {
       </ol>
       <p>Top-of-prep was the rebalance. Elena reordered it under the savings ask at the last minute — her read was that raising the execution lapse before the savings ask would read as pressure stacking. Defensible; we went with it.</p>
       <p>Net effect: the rebalance wasn't raised on the Feb 8 call, and is now aging into second-stall territory. Not a mistake — the call prioritization was right given the savings fight — but worth logging so the next prep cycle knows the cost.</p>`,
-    meta: { status: 'Complete', trigger: 'Pre-call T-72h', source: 'Agent', workflow: 'call-prep v3', confidence: '0.88', session: 'cp3k7m4p…8a2b6' },
+    meta: {
+      whyNow: { v: 'Pre-call T-72h', tip: 'Automatic prep-brief generation 72 hours before any live call.' },
+      source: { v: '42 signals over 6 weeks', tip: '27 email threads, 8 portfolio events, 7 email opens/forwards, plus the Dec and Jan call transcripts. Sequenced by impact, not chronology.' },
+      confidence: { level: 'High', pct: '88%', tip: 'Top-5 ordering tracks 90%+ with Elena\'s historical manual ordering when she reviews. The reorder this time was deliberate, not a model miss.' },
+      handoff: 'Elena — reviewed, reordered at call',
+      log: 'cp3k7m4p',
+    },
     related: [
-      { when: 'Feb 8', text: 'Quarterly call — pulled $40K in gains forward against advice' },
-      { when: 'Jan 19', text: 'Auto-surfaced the January rebalance commitment' },
+      { when: 'Feb 8', text: 'Quarterly call — pulled $40K in gains forward against advice', key: 'feb8-q4dip' },
+      { when: 'Jan 19', text: 'Auto-surfaced the January rebalance commitment', key: 'feb23-stalled' },
     ],
   },
   'mar2-529opens': {
@@ -2389,11 +2507,17 @@ const ACTIVITY_DETAILS = {
     body: `<p>Opens over 18 days: Jan 15 (7:21 AM, 28 sec), Jan 21 (9:04 PM, 22 sec), Jan 28 (6:58 AM, 19 sec), Feb 2 (7:30 AM, 24 sec). Four opens, zero clicks into the contribution flow, no reply.</p>
       <p>Each open under 30 seconds. Four opens, zero clicks reads as <em>thinking about it</em>, not <em>ignoring it</em>. The timing is on his mind; the action isn't. Kids are 17 and 15 — the window narrows each year and Jamie knows the math, which is probably why the email keeps getting opened and not clicked.</p>
       <p>Flagged warm but stuck. Did not send a follow-up. The email is doing its job as a recurring prompt; a second email would convert it from prompt to pressure. The right move is to raise 529 on the next live call with Adaeze present — she's the one making this call, based on the forward pattern.</p>`,
-    meta: { status: 'Observed', trigger: 'Repeat-open threshold', source: 'Agent', workflow: 'email-signal v2', confidence: '0.86', session: 'em4m7k2p…9d3a5' },
+    meta: {
+      whyNow: { v: 'Repeat-open threshold', tip: '4+ opens of a single email within 30 days without a reply triggers the "warm but stuck" flag. Crossed Feb 2 at 7:30 AM.' },
+      source: { v: 'Email client telemetry', tip: 'Four open events with timestamps, devices, durations: Jan 15 (28s), Jan 21 (22s), Jan 28 (19s), Feb 2 (24s). All under 30 seconds; zero clicks into the contribution flow.' },
+      confidence: { level: 'High', pct: '86%', tip: 'Short-repeat-open pattern with no clicks correlates 85%+ with "considering but deferring" in the advisor-base training set.' },
+      handoff: 'Raise with Adaeze present on the next call',
+      log: 'em4m7k2p',
+    },
     related: [
-      { when: 'Mar 12', text: 'Jamie forwarded thread to Adaeze — third time in six weeks' },
-      { when: 'Jan 15', text: '529 contribution window email sent' },
-      { when: 'Mar 2', text: 'Flagged the third email forward to Adaeze' },
+      { when: 'Mar 12', text: 'Jamie forwarded thread to Adaeze — third time in six weeks', key: 'mar12-fwd' },
+      { when: 'Jan 15', text: '529 contribution window email sent', key: 'jan15-529' },
+      { when: 'Mar 2', text: 'Flagged the third email forward to Adaeze', key: 'mar16-forward' },
     ],
   },
   'jan25-reminder': {
@@ -2403,10 +2527,16 @@ const ACTIVITY_DETAILS = {
       <div class="ad-quote">"Feb 8 is on the books, 11:00 AM. Want me to send Adaeze a calendar invite too? — Elena"</div>
       <p>Jamie confirmed the time within 14 minutes. Did not acknowledge the Adaeze part. This is the second soft invite she's ignored this year (first was Nov 18 prep email; both dropped without reply).</p>
       <p>The Adaeze-invite tactic has hit its limit as a soft ask. Two dropped soft-invites crosses the threshold; the next ask needs to be direct, by name, with a specific reason (private school decision). Logged for the Feb 5 prep packet — Elena ended up holding that ask for the live call, which is a third soft miss.</p>`,
-    meta: { status: 'Complete', trigger: 'Pre-call T-14d', source: 'Agent', workflow: 'gentle-reminder v3', confidence: '0.90', session: 'gr8k3m1p…2f5c7' },
+    meta: {
+      whyNow: { v: 'Pre-call T-14d', tip: 'Standard 14-day confirmation ping for quarterly calls. Includes an optional soft Adaeze invite unless previously declined.' },
+      source: { v: 'Calendar · Adaeze-invite history', tip: 'Upcoming Feb 8 calendar event; two prior soft Adaeze invites (Nov 18 and Jan 5) that were dropped without reply.' },
+      confidence: { level: 'High', pct: '90%', tip: 'The soft second invite is standard; what\'s new is the recommendation that any third attempt should be direct by name, not soft.' },
+      handoff: 'Elena — upgrade Adaeze invite for Apr 14',
+      log: 'gr8k3m1p',
+    },
     related: [
-      { when: 'Feb 8', text: 'Quarterly call — pulled $40K in gains forward against advice' },
-      { when: 'Mar 2', text: 'Flagged the third email forward to Adaeze' },
+      { when: 'Feb 8', text: 'Quarterly call — pulled $40K in gains forward against advice', key: 'feb8-q4dip' },
+      { when: 'Mar 2', text: 'Flagged the third email forward to Adaeze', key: 'mar16-forward' },
     ],
   },
   'feb23-stalled': {
@@ -2416,11 +2546,17 @@ const ACTIVITY_DETAILS = {
       <p>Promoted it to the top of Elena's prep view, demoted the 529 follow-up and the Q4 performance item by one slot each. Added a "second-stall watch" flag on the prep file — meaning if this item slips a second execution window, it escalates to amber.</p>
       <p>The aging-trigger logic is calibrated against Jamie's specific pattern: he agrees in the room, acts outside the room 70% of the time. When the 30% miss happens, the first reminder lands better as a prep-view surfacing than as a direct ping. Let Elena raise it in a live channel, don't text the ask.</p>
       <p>Outcome: Elena did not raise it on the Feb 8 call (reordered under the savings ask). Now in second-stall territory as of Feb 10. Escalating to amber on the prep file.</p>`,
-    meta: { status: 'Decision · Surface', trigger: 'Aging (60 days)', source: 'Agent', workflow: 'aging-trigger v2', confidence: '—', session: 'at5k9m2p…3c7e8' },
+    meta: {
+      whyNow: { v: 'Aging trigger (60 days)', tip: 'Any committed item with no progress for 60 days auto-surfaces to the top of the next prep view. Rebalance was committed Dec 12; crossed 60 days on Jan 19 — this is that surfacing.' },
+      source: { v: 'Commitment log · prep-view rules', tip: 'Original commitment from Dec 12 call transcript; prep-view priority scoring rules; 2023–24 aging-trigger history showing 60 days is the right calibration for Jamie\'s pattern.' },
+      confidence: { level: 'Very high', pct: '—', tip: 'Deterministic — 60 days is a threshold, not a judgment. The prep-view reorder is the only evaluative part and it\'s rule-based.' },
+      handoff: 'Elena — promoted on prep view (reordered at Feb 8 call)',
+      log: 'at5k9m2p',
+    },
     related: [
-      { when: 'Feb 10', text: 'Portfolio rebalance — still stalled 45 days in' },
-      { when: 'Feb 5', text: 'Pre-call brief assembled for Elena' },
-      { when: 'Feb 8', text: 'Quarterly call — pulled $40K in gains forward against advice' },
+      { when: 'Feb 10', text: 'Portfolio rebalance — still stalled 45 days in', key: 'feb10-rebalance' },
+      { when: 'Feb 5', text: 'Pre-call brief assembled for Elena', key: 'feb5-prep' },
+      { when: 'Feb 8', text: 'Quarterly call — pulled $40K in gains forward against advice', key: 'feb8-q4dip' },
     ],
   },
   'jan15-529': {
@@ -2429,10 +2565,16 @@ const ACTIVITY_DETAILS = {
     body: `<p>Annual contribution window opens Jan 1; state tax deduction caps at $10K per filer. This is the first-touch email of the year, sent at 7:00 AM to land in Jamie's morning inbox review.</p>
       <p>Specific numbers, no CTA button. Lead line: <em>"$10K state deduction window is open. For Maya's timeline, every year counts more than the last."</em> Maya is the 15-year-old; the 17-year-old is Theo. Jamie responds to the kids' names more reliably than to generic family framing.</p>
       <p>Jamie opened at 7:21 AM, dwelled 28 seconds, didn't reply. He'll open it three more times over the next 18 days — that's the repeat-open signal that triggers the Feb 2 flag. This is the email that starts the whole 529 thread; the forward pattern begins here too.</p>`,
-    meta: { status: 'Complete · No reply', trigger: 'Annual window (Jan 1)', source: 'Agent', workflow: 'seasonal-reminder v2', confidence: '0.89', session: 'sr6k3m8p…4a1f2' },
+    meta: {
+      whyNow: { v: 'Annual window (Jan 1)', tip: 'Annual 529 state-deduction window opens Jan 1. First-touch email scheduled in the first 15 days of the window.' },
+      source: { v: 'Client plan · tax profile', tip: 'Kids\' ages (Theo 17, Maya 15) from the profile; state deduction cap ($10K/filer); prior-year open-rate history on 529 seasonal emails.' },
+      confidence: { level: 'High', pct: '89%', tip: 'The "specific numbers, no CTA" format outperforms button-led CTAs on 529 emails in the advisor-base data (67% vs 34% open-to-reopen rate).' },
+      handoff: 'Monitor opens; escalate at 4+',
+      log: 'sr6k3m8p',
+    },
     related: [
-      { when: 'Feb 2', text: 'Jamie opened the 529 contribution email four times' },
-      { when: 'Mar 12', text: 'Jamie forwarded thread to Adaeze — third time in six weeks' },
+      { when: 'Feb 2', text: 'Jamie opened the 529 contribution email four times', key: 'mar2-529opens' },
+      { when: 'Mar 12', text: 'Jamie forwarded thread to Adaeze — third time in six weeks', key: 'mar12-fwd' },
     ],
   },
   'feb16-celebrate': {
@@ -2441,11 +2583,17 @@ const ACTIVITY_DETAILS = {
     body: `<p>Portfolio crossed +10% YTD at market close Jan 12. Sent a short note at 4:00 PM tied to Jamie's retirement target — framed as <em>"two years closer than the December plan said"</em>, not as a win to celebrate.</p>
       <p>Calibrated deliberately short — two sentences, one number, one outcome frame. This is the first positive note in four weeks and it needs to land as information, not pressure. If the note is too warm, the subtext becomes <em>"...so you can finally restart savings"</em> and Jamie reads it as a setup. Two sentences keeps it clean.</p>
       <p>He replied <em>"appreciate it"</em> 47 minutes later. Short, warm, no questions back. Logging this as the cadence baseline I'll measure against when he goes quiet in March — three-word positive reply is the healthy end of his range.</p>`,
-    meta: { status: 'Complete', trigger: 'YTD milestone crossed', source: 'Agent', workflow: 'milestone-note v2', confidence: '0.91', session: 'mn2k7p4m…8e3b1' },
+    meta: {
+      whyNow: { v: 'YTD milestone crossed', tip: 'Portfolio crossed +10% YTD at market close Jan 12. Milestone notes trigger automatically at 5%, 10%, 15%, 20% YTD crossings.' },
+      source: { v: 'Daily return series · reply history', tip: 'Rolling YTD series from the portfolio feed; prior positive-note history showing Jamie\'s reply length to warm/short/long notes (short wins).' },
+      confidence: { level: 'High', pct: '91%', tip: 'The two-sentence format and retirement-target framing both index above baseline in Jamie\'s own response history for positive notes.' },
+      handoff: 'Logged as cadence baseline',
+      log: 'mn2k7p4m',
+    },
     related: [
-      { when: 'Mar 30', text: 'Q1 booked at +11.4% YTD' },
-      { when: 'Mar 30', text: 'Sent the Q1 performance summary' },
-      { when: 'Feb 16', text: 'Drafted savings restart language' },
+      { when: 'Mar 30', text: 'Q1 booked at +11.4% YTD', key: 'mar30-close' },
+      { when: 'Mar 30', text: 'Sent the Q1 performance summary', key: 'mar30-q1summary' },
+      { when: 'Feb 16', text: 'Drafted savings restart language', key: 'mar9-draft' },
     ],
   },
 };
@@ -2462,12 +2610,11 @@ function defaultDetail(key, row) {
     title: title,
     body: '<p>' + body + '</p>',
     meta: {
-      status: 'Observed',
-      trigger: 'Routine sync',
-      source: tagText,
-      workflow: 'log v1',
-      confidence: '—',
-      session: key + '…0001',
+      whyNow: { v: 'Routine sync', tip: 'Auto-logged as part of the ongoing signal ingest — no specific trigger beyond the regular data refresh.' },
+      source: { v: tagText, tip: 'Primary data source for this event. See body for specifics.' },
+      confidence: { level: 'Medium', pct: '—', tip: 'Default confidence — this entry does not have a rich reasoning trace attached.' },
+      handoff: 'Elena, next call prep',
+      log: key,
     },
     related: [],
   };
@@ -2482,16 +2629,30 @@ function openDetail(key) {
   document.getElementById('ad-title').textContent = data.title;
   document.getElementById('ad-body').innerHTML = data.body;
 
-  // Run information card
+  // Run context card
   const m = data.meta;
   document.getElementById('ad-meta-card').innerHTML = `
-    <div class="ad-meta-label">Run information</div>
-    <div class="ad-meta-row"><span class="k">Status</span><span class="v ${m.status.includes('Complete') ? 'green' : ''}">${m.status}</span></div>
-    <div class="ad-meta-row"><span class="k">Trigger</span><span class="v">${m.trigger}</span></div>
-    <div class="ad-meta-row"><span class="k">Source</span><span class="v">${m.source}</span></div>
-    <div class="ad-meta-row"><span class="k">Workflow</span><span class="v">${m.workflow}</span></div>
-    <div class="ad-meta-row"><span class="k">Confidence</span><span class="v">${m.confidence}</span></div>
-    <div class="ad-meta-row"><span class="k">Session ID</span><span class="v"><code>${m.session}</code></span></div>
+    <div class="ad-meta-label">Run Context</div>
+    <div class="ad-meta-row">
+      <span class="k">Why now</span>
+      <span class="v has-tip">${m.whyNow.v}<span class="tip">${m.whyNow.tip}</span></span>
+    </div>
+    <div class="ad-meta-row">
+      <span class="k">Source</span>
+      <span class="v has-tip">${m.source.v}<span class="tip">${m.source.tip}</span></span>
+    </div>
+    <div class="ad-meta-row">
+      <span class="k">Confidence</span>
+      <span class="v has-tip">${m.confidence.level} · ${m.confidence.pct}<span class="tip">${m.confidence.tip}</span></span>
+    </div>
+    <div class="ad-meta-row">
+      <span class="k">Handoff</span>
+      <span class="v">${m.handoff}</span>
+    </div>
+    <div class="ad-meta-row ad-meta-foot">
+      <span class="k">Agent log</span>
+      <span class="v"><code>${m.log}</code></span>
+    </div>
   `;
 
   // Related card
@@ -2499,7 +2660,7 @@ function openDetail(key) {
   if (data.related && data.related.length > 0) {
     relatedCard.innerHTML = `
       <div class="ad-meta-label">Related</div>
-      ${data.related.map(r => `<div class="ad-related-row"><span class="when">${r.when}</span><span>${r.text}</span></div>`).join('')}
+      ${data.related.map(r => `<div class="ad-related-row${r.key ? ' is-link' : ''}"${r.key ? ` onclick="openDetail('${r.key}')"` : ''}><span class="when">${r.when}</span><span>${r.text}</span></div>`).join('')}
     `;
     relatedCard.style.display = '';
   } else {
