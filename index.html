@@ -1488,8 +1488,8 @@
   }
   .cv-chat-bubble.user {
     align-self: flex-end;
-    background: rgba(0,0,0,0.05);
-    color: #000;
+    background: var(--amber);
+    color: #fff;
   }
   .cv-chat-bubble.assistant {
     align-self: flex-start;
@@ -1570,8 +1570,11 @@
   }
   .cv-chat-chip:active { transform: scale(0.97); }
 
-  /* Assistant bubble that starts as a thinking state and morphs into an answer.
-     Single container, single motion — no caret, no bouncing dots. */
+  /* Assistant bubble — starts in thinking state, then cross-fades to the answer.
+     No caret, no pills, no typewriter. One container, one motion. */
+  .cv-chat-bubble.assistant {
+    transition: opacity 220ms var(--ease-out), filter 260ms var(--ease-out);
+  }
   .cv-chat-bubble.assistant.is-thinking {
     color: var(--text-tertiary);
     border-color: transparent;
@@ -1579,12 +1582,6 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    background:
-      linear-gradient(90deg,
-        rgba(0,0,0,0) 0%,
-        rgba(0,0,0,0.04) 45%,
-        rgba(0,0,0,0) 100%) 0 0 / 200% 100% no-repeat;
-    animation: think-shimmer 1.6s linear infinite;
   }
   .cv-chat-bubble.assistant.is-thinking .mark {
     width: 7px; height: 7px;
@@ -1597,6 +1594,15 @@
   .cv-chat-bubble.assistant.is-thinking .label {
     font-size: 13px;
     line-height: 1.4;
+    background: linear-gradient(90deg,
+      var(--text-tertiary) 0%,
+      rgba(0,0,0,0.75) 45%,
+      var(--text-tertiary) 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: think-shimmer 1.8s linear infinite;
   }
   @keyframes think-breathe {
     0%, 100% { opacity: 0.35; transform: scale(0.8); }
@@ -1606,35 +1612,14 @@
     0%   { background-position: 200% 0; }
     100% { background-position: -200% 0; }
   }
-
-  .cv-chat-cites {
-    align-self: flex-start;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: -2px;
-    padding: 0 4px;
-    max-width: 92%;
+  .cv-chat-bubble.assistant.is-fading { opacity: 0; filter: blur(4px); }
+  .cv-chat-bubble.assistant.is-revealing {
+    animation: answer-reveal 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
-  .cv-chat-cite {
-    font-size: 11px;
-    font-weight: 500;
-    padding: 3px 8px;
-    border-radius: 999px;
-    background: rgba(0,0,0,0.04);
-    color: var(--text-tertiary);
-    letter-spacing: 0.2px;
-    white-space: nowrap;
-    opacity: 0;
-    transform: translateY(4px);
-    animation: cite-rise 0.36s var(--ease-out) forwards;
-  }
-  .cv-chat-cite:nth-child(1) { animation-delay: 0.00s; }
-  .cv-chat-cite:nth-child(2) { animation-delay: 0.07s; }
-  .cv-chat-cite:nth-child(3) { animation-delay: 0.14s; }
-  .cv-chat-cite:nth-child(4) { animation-delay: 0.21s; }
-  @keyframes cite-rise {
-    to { opacity: 1; transform: translateY(0); }
+  @keyframes answer-reveal {
+    0%   { opacity: 0; filter: blur(6px); transform: translateY(3px); }
+    60%  { opacity: 1; }
+    100% { opacity: 1; filter: blur(0); transform: translateY(0); }
   }
 </style>
 </head>
@@ -2215,7 +2200,7 @@
             </button>
           </div>
           <button type="submit" class="cv-chat-send" aria-label="Send">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="20" y2="12"/><polyline points="13 5 20 12 13 19"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="4" x2="12" y2="20"/><polyline points="5 11 12 4 19 11"/></svg>
           </button>
         </div>
       </form>
@@ -2224,7 +2209,7 @@
       <button class="cv-chat-collapsed-bar" onclick="expandChat()" aria-label="Ask about Jamie">
         <span class="ph">Ask about Jamie…</span>
         <span class="send-mini">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="20" y2="12"/><polyline points="13 5 20 12 13 19"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="4" x2="12" y2="20"/><polyline points="5 11 12 4 19 11"/></svg>
         </span>
       </button>
     </div>
@@ -2413,8 +2398,6 @@ function appendBubble(text, who) {
   scroll.scrollTop = scroll.scrollHeight;
   return div;
 }
-// Single-container: assistant bubble starts as a shimmering "thinking" row,
-// then swaps in place to stream the answer. No caret, no bouncing dots.
 function appendThinkingBubble(label) {
   const scroll = document.getElementById('chat-scroll');
   const bubble = document.createElement('div');
@@ -2429,59 +2412,29 @@ function appendThinkingBubble(label) {
   scroll.scrollTop = scroll.scrollHeight;
   return bubble;
 }
-// Word-by-word on requestAnimationFrame. One text node, no thrash.
-function streamInto(bubble, text, onDone) {
+// Thinking shimmer → fade out → swap contents → blur-fade-in reveal. One container.
+function morphToAnswer(bubble, answer) {
   const scroll = document.getElementById('chat-scroll');
-  const tokens = text.match(/\S+\s*/g) || [text];
-  bubble.textContent = '';
-  const textNode = document.createTextNode('');
-  bubble.appendChild(textNode);
-  let idx = 0;
-  let last = 0;
-  const GAP = 48; // ms per word — roughly natural reading
-  function frame(now) {
-    if (!last) last = now;
-    if (now - last >= GAP) {
-      if (idx >= tokens.length) { onDone && onDone(); return; }
-      const t = tokens[idx++];
-      textNode.data += t;
-      // Punctuation at the end of a token gets a short extra beat
-      const pausey = /[.,;:!?]\s*$/.test(t) ? 140 : 0;
-      last = now + pausey;
-      scroll.scrollTop = scroll.scrollHeight;
-    }
-    requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
-}
-function appendCites(cites) {
-  if (!cites || !cites.length) return;
-  const scroll = document.getElementById('chat-scroll');
-  const row = document.createElement('div');
-  row.className = 'cv-chat-cites';
-  cites.forEach(c => {
-    const chip = document.createElement('span');
-    chip.className = 'cv-chat-cite';
-    chip.textContent = c;
-    row.appendChild(chip);
-  });
-  scroll.appendChild(row);
-  scroll.scrollTop = scroll.scrollHeight;
+  bubble.classList.add('is-fading');
+  setTimeout(() => {
+    bubble.classList.remove('is-thinking', 'is-fading');
+    bubble.textContent = answer;
+    // Force a reflow so the reveal animation restarts cleanly
+    void bubble.offsetWidth;
+    bubble.classList.add('is-revealing');
+    bubble.addEventListener('animationend', () => {
+      bubble.classList.remove('is-revealing');
+    }, { once: true });
+    scroll.scrollTop = scroll.scrollHeight;
+  }, 220);
 }
 function ask(q, a, opts) {
   opts = opts || {};
   const think = opts.think || 'Scanning Jamie\'s account';
-  const cites = opts.cites || [];
   appendBubble(q, 'user');
-  // Small beat, then the single assistant bubble appears in thinking state.
   setTimeout(() => {
     const bubble = appendThinkingBubble(think);
-    // Hold the shimmer ~900ms, then morph: clear children, drop thinking class, stream the answer.
-    setTimeout(() => {
-      bubble.classList.remove('is-thinking');
-      bubble.textContent = '';
-      streamInto(bubble, a, () => appendCites(cites));
-    }, 900 + Math.random() * 200);
+    setTimeout(() => morphToAnswer(bubble, a), 900 + Math.random() * 200);
   }, 220);
 }
 function sendInput(e) {
