@@ -2301,29 +2301,68 @@ function sendInput(e) {
   for (const k of KEYWORDS) { if (k.rx.test(t)) { reply = k.a; break; } }
   ask(t, reply);
 }
+function _chatCleanup(panel) {
+  panel.style.height = '';
+  panel.style.width = '';
+  if (panel._chatTransitionHandler) {
+    panel.removeEventListener('transitionend', panel._chatTransitionHandler);
+    panel._chatTransitionHandler = null;
+  }
+  if (panel._chatFallbackTimer) {
+    clearTimeout(panel._chatFallbackTimer);
+    panel._chatFallbackTimer = null;
+  }
+}
+function _chatOnDone(panel, after) {
+  if (panel._chatTransitionHandler) {
+    panel.removeEventListener('transitionend', panel._chatTransitionHandler);
+    panel._chatTransitionHandler = null;
+  }
+  if (panel._chatFallbackTimer) {
+    clearTimeout(panel._chatFallbackTimer);
+    panel._chatFallbackTimer = null;
+  }
+  const handler = (e) => {
+    if (e.target !== panel) return;
+    if (e.propertyName !== 'height') return;
+    panel.removeEventListener('transitionend', handler);
+    panel._chatTransitionHandler = null;
+    if (panel._chatFallbackTimer) {
+      clearTimeout(panel._chatFallbackTimer);
+      panel._chatFallbackTimer = null;
+    }
+    after();
+  };
+  panel._chatTransitionHandler = handler;
+  panel.addEventListener('transitionend', handler);
+  panel._chatFallbackTimer = setTimeout(() => {
+    if (panel._chatTransitionHandler) {
+      panel.removeEventListener('transitionend', panel._chatTransitionHandler);
+      panel._chatTransitionHandler = null;
+    }
+    panel._chatFallbackTimer = null;
+    after();
+  }, 700);
+}
 function collapseChat() {
   const panel = document.getElementById('chat-panel');
   if (panel.classList.contains('collapsed')) return;
   const input = document.getElementById('chat-input');
   if (input) input.blur();
-  if (window._chatExpandTimer) {
-    clearTimeout(window._chatExpandTimer);
-    window._chatExpandTimer = null;
-  }
+  _chatCleanup(panel);
   panel.style.height = panel.offsetHeight + 'px';
-  panel.style.width = panel.offsetWidth + 'px';
   panel.offsetHeight;
   panel.classList.add('collapsed');
-  panel.style.height = '';
-  panel.style.width = '';
+  panel.style.height = '52px';
+  _chatOnDone(panel, () => { _chatCleanup(panel); });
 }
 function expandChat() {
   const panel = document.getElementById('chat-panel');
   if (!panel.classList.contains('collapsed')) return;
+  _chatCleanup(panel);
   panel.classList.remove('collapsed');
   panel.style.transition = 'none';
   panel.style.height = 'auto';
-  panel.style.width = '';
   const targetH = panel.offsetHeight;
   panel.style.height = '52px';
   panel.classList.add('collapsed');
@@ -2331,12 +2370,11 @@ function expandChat() {
   panel.style.transition = '';
   panel.classList.remove('collapsed');
   panel.style.height = targetH + 'px';
-  window._chatExpandTimer = setTimeout(() => {
-    panel.style.height = '';
-    window._chatExpandTimer = null;
+  _chatOnDone(panel, () => {
+    _chatCleanup(panel);
     const input = document.getElementById('chat-input');
     if (input) input.focus();
-  }, 550);
+  });
 }
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {

@@ -1207,7 +1207,7 @@
     width: 34px;
     height: 34px;
     border-radius: 50%;
-    background: #000;
+    background: var(--amber);
     color: #fff;
     display: flex;
     align-items: center;
@@ -1286,7 +1286,7 @@
     height: 40px;
     border-radius: 50%;
     border: none;
-    background: #000;
+    background: var(--amber);
     color: #fff;
     cursor: pointer;
     display: flex;
@@ -2668,36 +2668,80 @@ function sendInput(e) {
   for (const k of KEYWORDS) { if (k.rx.test(t)) { reply = k.a; break; } }
   ask(t, reply);
 }
+function _chatCleanup(panel) {
+  panel.style.height = '';
+  panel.style.width = '';
+  if (panel._chatTransitionHandler) {
+    panel.removeEventListener('transitionend', panel._chatTransitionHandler);
+    panel._chatTransitionHandler = null;
+  }
+  if (panel._chatFallbackTimer) {
+    clearTimeout(panel._chatFallbackTimer);
+    panel._chatFallbackTimer = null;
+  }
+}
+function _chatOnDone(panel, after) {
+  if (panel._chatTransitionHandler) {
+    panel.removeEventListener('transitionend', panel._chatTransitionHandler);
+    panel._chatTransitionHandler = null;
+  }
+  if (panel._chatFallbackTimer) {
+    clearTimeout(panel._chatFallbackTimer);
+    panel._chatFallbackTimer = null;
+  }
+  const handler = (e) => {
+    if (e.target !== panel) return;
+    if (e.propertyName !== 'height') return;
+    panel.removeEventListener('transitionend', handler);
+    panel._chatTransitionHandler = null;
+    if (panel._chatFallbackTimer) {
+      clearTimeout(panel._chatFallbackTimer);
+      panel._chatFallbackTimer = null;
+    }
+    after();
+  };
+  panel._chatTransitionHandler = handler;
+  panel.addEventListener('transitionend', handler);
+  panel._chatFallbackTimer = setTimeout(() => {
+    if (panel._chatTransitionHandler) {
+      panel.removeEventListener('transitionend', panel._chatTransitionHandler);
+      panel._chatTransitionHandler = null;
+    }
+    panel._chatFallbackTimer = null;
+    after();
+  }, 700);
+}
 function collapseChat() {
   const panel = document.getElementById('chat-panel');
   if (panel.classList.contains('collapsed')) return;
-  // Lock current height as inline style so transition has a starting point
+  const input = document.getElementById('chat-input');
+  if (input) input.blur();
+  _chatCleanup(panel);
   panel.style.height = panel.offsetHeight + 'px';
-  panel.offsetHeight; // reflow
+  panel.offsetHeight;
   panel.classList.add('collapsed');
-  panel.style.height = ''; // CSS .collapsed sets height: 52px
+  panel.style.height = '52px';
+  _chatOnDone(panel, () => { _chatCleanup(panel); });
 }
 function expandChat() {
   const panel = document.getElementById('chat-panel');
   if (!panel.classList.contains('collapsed')) return;
-  // Temporarily remove class to measure natural height
+  _chatCleanup(panel);
   panel.classList.remove('collapsed');
   panel.style.transition = 'none';
   panel.style.height = 'auto';
-  panel.style.width = '';
   const targetH = panel.offsetHeight;
-  // Snap back to collapsed dims
   panel.style.height = '52px';
   panel.classList.add('collapsed');
-  panel.offsetHeight; // reflow
+  panel.offsetHeight;
   panel.style.transition = '';
-  // Now expand to target
   panel.classList.remove('collapsed');
   panel.style.height = targetH + 'px';
-  setTimeout(() => {
-    panel.style.height = '';
-    document.getElementById('chat-input').focus();
-  }, 550);
+  _chatOnDone(panel, () => {
+    _chatCleanup(panel);
+    const input = document.getElementById('chat-input');
+    if (input) input.focus();
+  });
 }
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
