@@ -1,0 +1,2721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>Jamie Hart — Activity</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #EFF1F4;
+    --white: #FFFFFF;
+    --side-bg: #EFF1F4;
+    --surface-1: #FFFFFF;
+    --surface-1-inset: #F7F8FA;
+    --shadow-card: 0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
+    --shadow-card-hover: 0 2px 4px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.06);
+    --shadow-inset: inset 0 1px 2px rgba(0,0,0,0.03);
+    --card-border: rgba(0,0,0,0.06);
+    --border: rgba(0,0,0,0.08);
+    --border-strong: rgba(0,0,0,0.12);
+    --text-primary: #1A1C1F;
+    --text-secondary: #555555;
+    --text-tertiary: #888888;
+    --muted: #888;
+    /* Finance palette — blue → violet → raspberry. Brand + positive collapse to blue (agent's voice). */
+    --amber: #1D4ED8;
+    --amber-bg: rgba(29,78,216,0.08);
+    --amber-border: rgba(29,78,216,0.30);
+    --green: #1D4ED8;
+    --green-bg: rgba(29,78,216,0.10);
+    --green-border: rgba(29,78,216,0.32);
+    --red: #DB2777;
+    --red-bg: rgba(219,39,119,0.10);
+    --red-border: rgba(219,39,119,0.30);
+    --blue: #1D4ED8;
+    --blue-bg: rgba(29,78,216,0.08);
+    --blue-border: rgba(29,78,216,0.28);
+    --yellow: #7C3AED;
+    --yellow-bg: rgba(124,58,237,0.10);
+    --yellow-border: rgba(124,58,237,0.30);
+    --serif: 'Instrument Sans', -apple-system, 'SF Pro Text', sans-serif;
+    --sans: 'Instrument Sans', -apple-system, 'SF Pro Text', sans-serif;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+    /* 4px baseline grid — all line-heights & vertical rhythm snap to multiples */
+    --base: 4px;
+  }
+  body { line-height: 20px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes rise-large {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes slide-right {
+    from { opacity: 0; transform: translateX(14px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  html, body {
+    background: #fff;
+  }
+  body {
+    font-family: var(--sans);
+    color: var(--text-primary);
+    min-height: 100vh;
+  }
+
+  /* ──────── APP SHELL ──────── */
+  .app {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  /* ──────── LEFT SIDEBAR — v3 (radically simple) ──────── */
+  .sidebar {
+    width: 76px;
+    flex-shrink: 0;
+    background: var(--side-bg);
+    border-right: 1px solid rgba(0,0,0,0.05);
+    padding: 16px 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-self: stretch;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    z-index: 60;
+    transition: width 0.45s var(--ease-spring), padding 0.4s var(--ease-spring);
+  }
+  .sidebar.expanded {
+    width: 272px;
+    padding: 16px 14px 16px;
+  }
+
+  /* Every row in the sidebar shares the same 44px height + flex layout.
+     Collapsed: icon centered. Expanded: icon left, label right. */
+  .sidebar .ws,
+  .sidebar .search,
+  .sidebar .nav-item,
+  .sidebar .pat-row,
+  .sidebar .me {
+    display: flex;
+    align-items: center;
+    height: 44px;
+    padding: 0 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: var(--sans);
+    color: #444;
+    background: none;
+    border: none;
+    text-align: left;
+    width: 100%;
+    box-sizing: border-box;
+    transition: background 0.18s var(--ease-out);
+    overflow: hidden;
+  }
+  .sidebar:not(.expanded) .ws,
+  .sidebar:not(.expanded) .search,
+  .sidebar:not(.expanded) .nav-item,
+  .sidebar:not(.expanded) .pat-row,
+  .sidebar:not(.expanded) .me {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .sidebar .nav-item:hover,
+  .sidebar .pat-row:hover,
+  .sidebar .search:hover,
+  .sidebar .me:hover {
+    background: rgba(0,0,0,0.05);
+  }
+  .sidebar .nav-item.active { background: rgba(0,0,0,0.07); color: #000; }
+  .sidebar .pat-row.active { background: rgba(0,0,0,0.07); }
+
+  /* Workspace mark */
+  .ws { margin-bottom: 6px; }
+  .sidebar .ws:hover { background: rgba(0,0,0,0.05); }
+  .ws-mark {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: #000;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 400;
+    flex-shrink: 0;
+  }
+  .ws-name {
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-left: 12px;
+    white-space: nowrap;
+    flex: 1;
+    opacity: 0;
+    transition: opacity 0.2s var(--ease-out);
+  }
+  .sidebar.expanded .ws-name { opacity: 1; transition-delay: 0.15s; }
+  .sidebar:not(.expanded) .ws-name { display: none; }
+
+  .collapse-btn {
+    width: 32px; height: 32px;
+    border: none;
+    background: none;
+    color: #888;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    flex-shrink: 0;
+    transition: opacity 0.2s var(--ease-out), background 0.18s, color 0.18s;
+  }
+  .collapse-btn svg { width: 16px; height: 16px; }
+  .collapse-btn:hover { background: rgba(0,0,0,0.06); color: #000; }
+  /* Collapsed: hidden, reveals on .ws hover */
+  .sidebar:not(.expanded) .collapse-btn { display: none; }
+  .sidebar:not(.expanded) .ws:hover .ws-mark { display: none; }
+  .sidebar:not(.expanded) .ws:hover .collapse-btn { display: flex; }
+
+  /* Search */
+  .search { margin-bottom: 6px; }
+  .search svg { width: 20px; height: 20px; color: #666; flex-shrink: 0; }
+  .search-input {
+    border: none;
+    background: none;
+    outline: none;
+    font-family: var(--sans);
+    font-size: 14px;
+    color: #888;
+    margin-left: 12px;
+    flex: 1;
+    min-width: 0;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+  }
+  .sidebar.expanded .search { background: rgba(0,0,0,0.05); }
+  .sidebar.expanded .search-input { opacity: 1; pointer-events: auto; transition-delay: 0.15s; }
+  .sidebar:not(.expanded) .search-input { display: none; }
+
+  /* Nav items */
+  .nav-section { display: flex; flex-direction: column; gap: 2px; }
+  .nav-item svg { width: 20px; height: 20px; color: #666; flex-shrink: 0; }
+  .nav-item.active svg { color: #000; }
+  .nav-label {
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+    color: #444;
+    margin-left: 14px;
+    white-space: nowrap;
+    flex: 1;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .sidebar.expanded .nav-label { opacity: 1; transition-delay: 0.15s; }
+  .sidebar:not(.expanded) .nav-label { display: none; }
+  .nav-item.active .nav-label { color: #000; font-weight: 600; }
+
+  /* Patient section — only in expanded state */
+  .pat-section {
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .sidebar.expanded .pat-section { display: flex; }
+
+  .nav-divider {
+    height: 1px;
+    background: rgba(0,0,0,0.08);
+    margin: 14px -14px;
+  }
+  .section-label {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-tertiary);
+    padding: 0 12px 6px;
+  }
+
+  .pat-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: rgba(0,0,0,0.08);
+    color: rgba(0,0,0,0.55);
+    font-family: var(--serif);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .pat-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .pat-row.active .pat-avatar { background: #000; color: #fff; }
+  .pat-name {
+    flex: 1;
+    margin-left: 12px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pat-row.active .pat-name { color: #000; font-weight: 600; }
+  .pat-meta {
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+  }
+
+  /* Advisor (me) at bottom */
+  .me-divider {
+    height: 1px;
+    background: rgba(0,0,0,0.08);
+    margin: 0 -12px 12px;
+    margin-top: auto;
+  }
+  .sidebar.expanded .me-divider { margin: 0 -14px 12px; margin-top: auto; }
+  .me .pat-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+  }
+  .me .pat-avatar img { border-radius: 50%; }
+  .me-name {
+    flex: 1;
+    margin-left: 12px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
+    white-space: nowrap;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .sidebar.expanded .me-name { opacity: 1; transition-delay: 0.15s; }
+  .sidebar:not(.expanded) .me-name { display: none; }
+  .sidebar.expanded .me:hover {
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+  }
+  .sidebar.expanded .me:hover .me-logout {
+    opacity: 1;
+    color: #000;
+  }
+  .me-logout {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: none;
+    color: #888;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    flex-shrink: 0;
+    transition: background 0.18s, color 0.18s, opacity 0.2s;
+  }
+  .sidebar.expanded .me-logout {
+    display: flex;
+    opacity: 0;
+  }
+  .sidebar.expanded .me:hover .me-logout { opacity: 1; }
+  .me-logout:hover { background: rgba(0,0,0,0.06); color: #000; }
+  .me-logout svg { width: 16px; height: 16px; }
+
+  /* Tooltips when collapsed */
+  .sidebar [data-tip] { position: relative; }
+  .sidebar [data-tip]::after {
+    content: attr(data-tip);
+    position: absolute;
+    left: calc(100% + 16px);
+    top: 50%;
+    transform: translateY(-50%) translateX(-4px);
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--sans);
+    padding: 6px 10px;
+    border-radius: 7px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s var(--ease-out), transform 0.22s var(--ease-spring);
+    z-index: 200;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.14);
+  }
+  .sidebar [data-tip]:hover::after {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+  .sidebar.expanded [data-tip]::after { display: none; }
+
+
+  /* ──────── MAIN ──────── */
+  .main {
+    flex: 1;
+    background: #fff;
+    padding: 56px 56px 220px;
+    min-width: 0;
+    transition: padding 0.5s var(--ease-spring);
+    position: relative;
+    display: flex;
+    justify-content: center;
+  }
+  .main-inner {
+    width: 100%;
+    max-width: 960px;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 32px;
+    margin-bottom: 36px;
+    animation: rise 0.5s var(--ease-out) both;
+  }
+
+  .header-text { min-width: 0; flex: 1; }
+  .patient-name {
+    font-family: var(--serif);
+    font-size: 56px;
+    line-height: 60px;
+    letter-spacing: -1.2px;
+    font-weight: 400;
+  }
+  .header-meta {
+    margin-top: 14px;
+    font-size: 14px;
+    line-height: 20px;
+    color: #555;
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .header-meta .sep { color: rgba(0,0,0,0.22); }
+  .header-meta .next-visit { color: #1a1a1a; font-weight: 400; }
+  .intake-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 15px;
+    line-height: 22px;
+    color: var(--amber);
+    cursor: pointer;
+    font-weight: 500;
+    text-decoration: none;
+    padding: 4px 12px;
+    margin: -4px -12px;
+    border-radius: 999px;
+    background: transparent;
+    transition: background 0.2s var(--ease-out);
+  }
+  .intake-link:hover { background: var(--amber-bg); }
+  .intake-icon,
+  .intake-wave,
+  .intake-pause {
+    width: 16px;
+    height: 16px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .intake-icon svg,
+  .intake-pause svg { width: 13px; height: 13px; }
+  /* State 1: not playing → show play triangle */
+  .intake-link .intake-icon { display: inline-flex; }
+  /* State 2: playing → show wave */
+  .intake-link.playing .intake-icon { display: none; }
+  .intake-link.playing .intake-wave { display: inline-flex; gap: 2px; }
+  /* State 3: playing + hover → show pause */
+  .intake-link.playing:hover .intake-wave { display: none; }
+  .intake-link.playing:hover .intake-pause { display: inline-flex; }
+  .intake-wave span {
+    display: block;
+    width: 2px;
+    height: 100%;
+    background: currentColor;
+    border-radius: 1px;
+    transform-origin: center;
+    animation: wave 1s ease-in-out infinite;
+  }
+  .intake-wave span:nth-child(1) { animation-delay: 0s;    transform: scaleY(0.4); }
+  .intake-wave span:nth-child(2) { animation-delay: 0.15s; transform: scaleY(0.8); }
+  .intake-wave span:nth-child(3) { animation-delay: 0.3s;  transform: scaleY(0.5); }
+  .intake-wave span:nth-child(4) { animation-delay: 0.45s; transform: scaleY(1);   }
+  .intake-wave span:nth-child(5) { animation-delay: 0.6s;  transform: scaleY(0.6); }
+  @keyframes wave {
+    0%, 100% { transform: scaleY(0.3); }
+    50%      { transform: scaleY(1); }
+  }
+
+  /* CTA top right — light white pill, hover swaps content via vertical slide */
+  .cta-primary {
+    flex-shrink: 0;
+    height: 60px;
+    padding: 6px 24px 6px 6px;
+    border-radius: 18px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.10);
+    color: #000;
+    font-family: var(--sans);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    transition:
+      background 0.2s var(--ease-out),
+      border-color 0.2s var(--ease-out),
+      box-shadow 0.3s var(--ease-out);
+  }
+  .cta-primary:hover {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  }
+  .cta-primary .cta-photo {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #eee;
+    flex-shrink: 0;
+  }
+  .cta-primary .cta-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  /* Stack: default text + hover text — slide vertically */
+  .cta-stack {
+    position: relative;
+    height: 38px;
+    min-width: 124px;
+    overflow: hidden;
+  }
+  .cta-default,
+  .cta-hover {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: transform 0.4s var(--ease-spring);
+  }
+  .cta-default {
+    transform: translateY(0);
+  }
+  .cta-hover {
+    transform: translateY(100%);
+    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+  }
+  .cta-primary:hover .cta-default { transform: translateY(-100%); }
+  .cta-primary:hover .cta-hover { transform: translateY(0); }
+  .cta-line {
+    font-size: 14px;
+    line-height: 18px;
+    color: #1a1a1a;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .cta-line strong {
+    font-weight: 700;
+    color: #000;
+  }
+  .cta-hover-text {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+    color: #000;
+  }
+  .cta-hover-arrow {
+    width: 18px;
+    height: 18px;
+    color: #000;
+  }
+  .cta-primary:active { transform: scale(0.99); }
+
+  /* Briefing card */
+  .briefing-card {
+    background: #fff;
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    padding: 56px 48px 60px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-card);
+    animation: rise-large 0.55s var(--ease-out) 0.08s both;
+  }
+  /* Stat cards inside the briefing */
+  .stat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: #FCFCFC;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 22px;
+    padding: 22px 28px 24px;
+    display: flex;
+    flex-direction: column;
+  }
+  .stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin-bottom: 12px;
+  }
+  .stat-row-bottom {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .stat-value {
+    font-family: var(--serif);
+    font-size: 44px;
+    line-height: 1;
+    letter-spacing: -1.2px;
+    font-weight: 400;
+    color: #000;
+  }
+  .stat-value .arrow {
+    font-family: var(--sans);
+    font-size: 0.62em;
+    font-weight: 300;
+    color: #000;
+    margin: 0 0.16em;
+    vertical-align: 0.32em;
+    display: inline-block;
+  }
+  .stat-value sup {
+    font-size: 14px;
+    vertical-align: super;
+    line-height: 0;
+    margin-left: 1px;
+  }
+  .stat-delta {
+    font-size: 12px;
+    font-weight: 500;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    letter-spacing: -0.1px;
+    color: var(--text-tertiary);
+  }
+  .stat-delta.up { color: var(--green); }
+
+  .briefing-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-tertiary);
+    margin-bottom: 14px;
+  }
+  .briefing-eyebrow .sep { margin: 0 6px; color: rgba(0,0,0,0.18); }
+  .briefing-title {
+    font-family: var(--serif);
+    font-size: 32px;
+    line-height: 38px;
+    letter-spacing: -0.5px;
+    margin-bottom: 32px;
+    font-weight: 400;
+  }
+  .visit-card {
+    background: #FCFCFC;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 24px;
+    padding: 28px 32px;
+  }
+  .visit-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 14px;
+  }
+  .visit-text {
+    font-size: 19px;
+    line-height: 28px;
+    color: #2a2a2a;
+    font-weight: 400;
+    letter-spacing: -0.2px;
+    max-width: 68ch;
+    text-wrap: pretty;
+  }
+  .visit-text + .visit-text { margin-top: 18px; }
+
+  /* Section above the rows */
+  .row-section {
+    margin-top: 36px;
+    animation: rise 0.5s var(--ease-out) 0.18s both;
+  }
+  .row-section-eyebrow {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: #555;
+    margin-bottom: 16px;
+    padding-left: 4px;
+  }
+  .row-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  /* Row buttons — white cards with shadow lift on hover */
+  .row-btn {
+    width: 100%;
+    background: #fff;
+    border: 1px solid var(--card-border);
+    padding: 22px 26px;
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    cursor: pointer;
+    text-align: left;
+    font-family: var(--sans);
+    border-radius: 18px;
+    box-shadow: var(--shadow-card);
+    transition: box-shadow 0.25s var(--ease-out), transform 0.25s var(--ease-out);
+  }
+  .row-btn:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-1px);
+  }
+  .row-btn:hover .row-arrow { transform: translateX(3px); color: #000; }
+  .row-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.10);
+    color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .row-icon svg { width: 20px; height: 20px; stroke-width: 1.75; }
+  .row-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  .row-title {
+    font-size: 19px;
+    line-height: 24px;
+    font-weight: 600;
+    color: #000;
+    letter-spacing: -0.3px;
+  }
+  .row-meta {
+    font-size: 15px;
+    line-height: 22px;
+    font-weight: 500;
+    color: #555;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .pill {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+  }
+  .pill .num { letter-spacing: 0; margin-right: 3px; }
+  .pill.green { background: var(--green-bg); color: var(--green); }
+  .pill.amber { background: var(--amber-bg); color: var(--amber); }
+  .pill.red   { background: var(--red-bg); color: var(--red); }
+  .pill.gray  { background: rgba(0,0,0,0.05); color: var(--text-secondary); }
+  .row-arrow {
+    font-size: 22px;
+    color: #999;
+    flex-shrink: 0;
+    margin-left: auto;
+    transition: transform 0.25s var(--ease-spring), color 0.18s;
+  }
+
+  /* ──────── RIGHT SIDE PANEL (PUSHES) ──────── */
+  .side-panel {
+    width: 0;
+    flex-shrink: 0;
+    background: #fff;
+    overflow: hidden;
+    transition: width 0.5s var(--ease-spring);
+  }
+  .app.panel-open .side-panel {
+    width: 460px;
+    border-left: 1px solid var(--card-border);
+  }
+  .side-inner {
+    width: 460px;
+    padding: 64px 44px 220px;
+    min-height: 100vh;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .side-inner::-webkit-scrollbar { display: none; }
+  .side-close {
+    position: absolute;
+    top: 32px;
+    right: 32px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #888;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.18s, color 0.18s;
+  }
+  .side-close:hover { background: rgba(0,0,0,0.05); color: #000; }
+  .side-close svg { width: 18px; height: 18px; }
+  .side-inner { position: relative; }
+
+  .side-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-tertiary);
+    margin-bottom: 12px;
+    padding-left: 16px;
+  }
+  .side-title {
+    font-family: var(--serif);
+    font-size: 32px;
+    line-height: 40px;
+    letter-spacing: -0.4px;
+    margin-bottom: 32px;
+    padding-left: 16px;
+    font-weight: 400;
+  }
+  .side-title-meta {
+    display: inline-block;
+    margin-left: 10px;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    vertical-align: middle;
+    transform: translateY(-2px);
+  }
+  .side-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-tertiary);
+    margin: 0 0 16px;
+    padding-left: 16px;
+  }
+  /* Eyebrow style is consistent — color carries from item context */
+  .side-item.green .side-item-meta { color: var(--green); }
+  .side-item.amber .side-item-meta { color: var(--amber); }
+  .side-item.red   .side-item-meta { color: var(--red); }
+
+  .side-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 18px 16px;
+    border-radius: 16px;
+    border: 1px solid transparent;
+    background: transparent;
+    box-shadow: 0 0 0 rgba(0,0,0,0);
+    transition:
+      background 0.25s var(--ease-out),
+      border-color 0.25s var(--ease-out),
+      box-shadow 0.3s var(--ease-out),
+      transform 0.25s var(--ease-out);
+    margin-bottom: 6px;
+    cursor: pointer;
+    position: relative;
+  }
+  .side-item:hover {
+    background: #fff;
+    border-color: rgba(0,0,0,0.06);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06);
+    transform: translateY(-1px);
+  }
+  .side-item-link {
+    position: absolute;
+    top: 18px;
+    right: 16px;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    color: #888;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: translate(-4px, 4px);
+    transition: opacity 0.2s var(--ease-out), transform 0.25s var(--ease-spring), background 0.18s, color 0.18s;
+    pointer-events: none;
+  }
+  .side-item-link svg { width: 16px; height: 16px; stroke-width: 2; }
+  .side-item:hover .side-item-link {
+    opacity: 1;
+    transform: translate(0, 0);
+    color: #000;
+  }
+  .side-item-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 11px;
+    background: rgba(0,0,0,0.025);
+    border: 1px solid rgba(0,0,0,0.10);
+    color: #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .side-item-icon svg { width: 18px; height: 18px; stroke-width: 1.75; }
+  /* Albers harmony — color carries through tile bg + border + stroke */
+  .side-item.green .side-item-icon {
+    background: var(--green-bg);
+    border-color: var(--green-border);
+    color: var(--green);
+  }
+  .side-item.amber .side-item-icon {
+    background: var(--amber-bg);
+    border-color: var(--amber-border);
+    color: var(--amber);
+  }
+  .side-item.red .side-item-icon {
+    background: var(--red-bg);
+    border-color: var(--red-border);
+    color: var(--red);
+  }
+  .side-item.blue .side-item-icon {
+    background: var(--blue-bg);
+    border-color: var(--blue-border);
+    color: var(--blue);
+  }
+  .side-item-body { flex: 1; min-width: 0; padding-top: 0; }
+  .side-item-meta {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-bottom: 6px;
+  }
+  .side-item-title {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    line-height: 24px;
+    letter-spacing: -0.2px;
+  }
+  .side-item-text {
+    font-size: 15px;
+    line-height: 24px;
+    font-weight: 400;
+    color: #555;
+  }
+
+  .app.panel-open .side-eyebrow { animation: slide-right 0.4s var(--ease-out) 0.18s both; }
+  .app.panel-open .side-title { animation: slide-right 0.45s var(--ease-out) 0.22s both; }
+  .app.panel-open .side-section-label { animation: slide-right 0.4s var(--ease-out) 0.26s both; }
+  .app.panel-open .side-item { animation: slide-right 0.45s var(--ease-out) both; }
+  .app.panel-open .side-item:nth-child(4) { animation-delay: 0.30s; }
+  .app.panel-open .side-item:nth-child(5) { animation-delay: 0.34s; }
+  .app.panel-open .side-item:nth-child(6) { animation-delay: 0.38s; }
+  .app.panel-open .side-item:nth-child(7) { animation-delay: 0.42s; }
+  .app.panel-open .side-item:nth-child(8) { animation-delay: 0.46s; }
+  .app.panel-open .side-item:nth-child(9) { animation-delay: 0.50s; }
+  .app.panel-open .side-item:nth-child(10) { animation-delay: 0.54s; }
+
+  /* ──────── SEARCH MODAL ──────── */
+  .search-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 14vh;
+    background: rgba(0,0,0,0.18);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    transition: opacity 0.2s var(--ease-out);
+  }
+  .search-modal.open {
+    display: flex;
+    opacity: 1;
+  }
+  .search-modal-card {
+    width: 640px;
+    max-width: calc(100vw - 48px);
+    max-height: 70vh;
+    background: #fff;
+    border-radius: 22px;
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.18), 0 4px 14px rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: translateY(-12px) scale(0.98);
+    transition: transform 0.3s var(--ease-spring);
+  }
+  .search-modal.open .search-modal-card { transform: translateY(0) scale(1); }
+  .search-modal-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 22px 24px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .search-modal-top svg.search-glass { width: 18px; height: 18px; color: #888; flex-shrink: 0; }
+  .search-modal-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: none;
+    font-family: var(--sans);
+    font-size: 18px;
+    color: #000;
+  }
+  .search-modal-input::placeholder { color: #aaa; }
+  .search-modal-close {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: rgba(0,0,0,0.05);
+    border-radius: 8px;
+    color: #666;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .search-modal-close:hover { background: rgba(0,0,0,0.1); color: #000; }
+  .search-modal-close svg { width: 14px; height: 14px; }
+  .search-modal-list {
+    overflow-y: auto;
+    padding: 8px 12px 16px;
+    scrollbar-width: none;
+  }
+  .search-modal-list::-webkit-scrollbar { display: none; }
+  .search-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-tertiary);
+    padding: 16px 14px 8px;
+  }
+  .search-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.18s;
+  }
+  .search-row:hover { background: rgba(0,0,0,0.04); }
+  .search-row-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: rgba(0,0,0,0.05);
+    color: #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .search-row-icon img { width: 100%; height: 100%; object-fit: cover; }
+  .search-row-icon svg { width: 16px; height: 16px; }
+  .search-row-title {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    color: #000;
+  }
+  .search-row-meta {
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  /* ──────── ASK BAR — centers under the main working area ──────── */
+  .cv-chat {
+    position: fixed;
+    bottom: 0;
+    left: 80px;        /* default: clear of collapsed sidebar */
+    right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+    padding: 0 16px 20px;
+    transition: left 0.45s var(--ease-spring), right 0.5s var(--ease-spring);
+    animation: rise-large 0.6s var(--ease-out) 0.4s both;
+  }
+  /* When sidebar is expanded, push the chat bar right */
+  body:has(.sidebar.expanded) .cv-chat { left: 272px; }
+  /* When right side panel is open, pull the chat bar left */
+  body:has(.app.panel-open) .cv-chat { right: 460px; }
+  .cv-chat-panel {
+    pointer-events: auto;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+    width: min(820px, calc(100vw - 32px));
+    border-radius: 28px;
+    position: relative;
+    overflow: hidden;
+    transition:
+      width 0.5s var(--ease-spring),
+      height 0.5s var(--ease-spring),
+      border-radius 0.5s var(--ease-spring),
+      box-shadow 0.4s var(--ease-out),
+      transform 0.3s var(--ease-spring);
+    transform-origin: bottom center;
+  }
+  .cv-chat-panel.collapsed { border-radius: 22px; }
+  .cv-chat-content {
+    padding: 20px 22px 18px 26px;
+    transition: opacity 0.25s var(--ease-out), filter 0.25s var(--ease-out);
+  }
+  .cv-chat-collapsed-shell {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s var(--ease-out);
+  }
+  .cv-chat-panel.collapsed {
+    width: 260px;
+    height: 52px;
+    border-radius: 22px;
+    box-shadow: 0 2px 14px rgba(0,0,0,0.07);
+  }
+  .cv-chat-panel.collapsed:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+  }
+  .cv-chat-panel.collapsed .cv-chat-content {
+    opacity: 0;
+    filter: blur(4px);
+    pointer-events: none;
+  }
+  .cv-chat-panel.collapsed .cv-chat-collapsed-shell {
+    opacity: 1;
+    pointer-events: auto;
+    transition-delay: 0.18s;
+  }
+  .cv-chat-collapsed-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    height: 100%;
+    padding: 8px 8px 8px 24px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-family: var(--sans);
+    border-radius: 999px;
+    font-size: 15px;
+    color: #aaa;
+    font-weight: 400;
+  }
+  .cv-chat-collapsed-bar .ph {
+    flex: 1;
+    text-align: left;
+    color: #aaa;
+    transition: color 0.35s var(--ease-out);
+    position: relative;
+  }
+  .cv-chat-panel.collapsed:hover .cv-chat-collapsed-bar .ph {
+    color: #000;
+    animation: ph-shimmer 0.75s var(--ease-out) both;
+  }
+  @keyframes ph-shimmer {
+    0%   { color: #aaa; }
+    40%  { color: #cfcfcf; }
+    100% { color: #000; }
+  }
+  .cv-chat-collapsed-bar .send-mini {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #000;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.25s var(--ease-spring);
+  }
+  .cv-chat-collapsed-bar .send-mini svg { width: 14px; height: 14px; }
+  .cv-chat-panel.collapsed:hover .send-mini { transform: scale(1.06); }
+  .cv-chat-scroll {
+    max-height: 192px;
+    overflow-y: auto;
+    margin-bottom: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    scrollbar-width: none;
+  }
+  .cv-chat-scroll::-webkit-scrollbar { display: none; }
+  .cv-chat-scroll:empty { display: none; }
+  .cv-chat-bubble {
+    font-size: 15px;
+    line-height: 1.5;
+    padding: 8px 12px;
+    border-radius: 10px;
+    max-width: 92%;
+    animation: rise 0.3s var(--ease-out) both;
+  }
+  .cv-chat-bubble.user {
+    align-self: flex-end;
+    background: rgba(0,0,0,0.05);
+    color: #000;
+  }
+  .cv-chat-bubble.assistant {
+    align-self: flex-start;
+    background: transparent;
+    color: #444;
+    border: 1px solid var(--border);
+  }
+  .cv-chat-input {
+    width: 100%;
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.4;
+    padding: 6px 0 14px;
+    border: none;
+    background: transparent;
+    color: #000;
+    outline: none;
+  }
+  .cv-chat-input::placeholder { color: #aaa; }
+  .cv-chat-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .cv-chat-icons { display: flex; align-items: center; gap: 14px; }
+  .cv-chat-icon {
+    width: 22px;
+    height: 22px;
+    border: none;
+    background: none;
+    color: #888;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s;
+  }
+  .cv-chat-icon:hover { color: #000; }
+  .cv-chat-icon svg { width: 20px; height: 20px; }
+  .cv-chat-send {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: #000;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.25s var(--ease-spring);
+  }
+  .cv-chat-send:hover { transform: scale(1.06); }
+  .cv-chat-send:active { transform: scale(0.94); }
+  .cv-chat-send svg { width: 16px; height: 16px; }
+  .cv-chat-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .cv-chat-chip {
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 400;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.18s var(--ease-out);
+    animation: rise 0.3s var(--ease-out) both;
+  }
+  .cv-chat-chip:hover {
+    border-color: rgba(0,0,0,0.2);
+    color: #000;
+  }
+  .cv-chat-chip:active { transform: scale(0.97); }
+
+  /* ──────── ACTIVITY PAGE ──────── */
+  .page-header {
+    margin-bottom: 48px;
+    animation: rise-large 0.55s var(--ease-out) both;
+  }
+  .activity-month {
+    animation: rise 0.4s var(--ease-out) both;
+  }
+  .page-eyebrow {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: #555;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .page-eyebrow a {
+    color: inherit;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    margin: -6px -12px;
+    border-radius: 999px;
+    transition: background 0.2s var(--ease-out), color 0.18s, gap 0.25s var(--ease-spring);
+  }
+  .page-eyebrow a:hover {
+    color: #000;
+    background: rgba(0,0,0,0.04);
+    gap: 12px;
+  }
+  .page-eyebrow svg { width: 14px; height: 14px; }
+  .page-title {
+    font-family: var(--serif);
+    font-size: 56px;
+    line-height: 60px;
+    letter-spacing: -1.2px;
+    font-weight: 400;
+    margin-bottom: 16px;
+  }
+  .page-subtitle {
+    font-size: 19px;
+    line-height: 28px;
+    color: #555;
+    font-weight: 400;
+    max-width: 60ch;
+    letter-spacing: -0.2px;
+  }
+
+  /* Activity timeline */
+  /* Each month is a rounded card containing the entries for that month */
+  .activity-month-card {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 24px;
+    padding: 14px 14px 14px;
+    margin-bottom: 20px;
+    animation: rise 0.5s var(--ease-out) both;
+  }
+  .activity-month {
+    font-size: 17px;
+    line-height: 24px;
+    font-weight: 600;
+    color: #000;
+    letter-spacing: -0.2px;
+    padding: 16px 18px 14px;
+  }
+  .activity-row {
+    display: flex;
+    gap: 32px;
+    padding: 22px 18px 24px;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: background 0.22s var(--ease-out), padding-left 0.25s var(--ease-spring);
+    align-items: flex-start;
+    animation: rise 0.4s var(--ease-out) both;
+    position: relative;
+  }
+  .activity-row::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 18px;
+    right: 18px;
+    height: 1px;
+    background: rgba(0,0,0,0.05);
+    pointer-events: none;
+    transition: opacity 0.2s var(--ease-out);
+  }
+  .activity-month-card .activity-row:last-child::after { display: none; }
+  .activity-row:hover {
+    background: rgba(0,0,0,0.022);
+    padding-left: 24px;
+  }
+  .activity-row:hover::after { opacity: 0; }
+  /* Stagger the entrance — 30ms per row */
+  .activity-row:nth-of-type(1)  { animation-delay: 0.05s; }
+  .activity-row:nth-of-type(2)  { animation-delay: 0.08s; }
+  .activity-row:nth-of-type(3)  { animation-delay: 0.11s; }
+  .activity-row:nth-of-type(4)  { animation-delay: 0.14s; }
+  .activity-row:nth-of-type(5)  { animation-delay: 0.17s; }
+  .activity-row:nth-of-type(6)  { animation-delay: 0.20s; }
+  .activity-row:nth-of-type(7)  { animation-delay: 0.23s; }
+  .activity-row:nth-of-type(8)  { animation-delay: 0.26s; }
+  .activity-row:nth-of-type(9)  { animation-delay: 0.29s; }
+  .activity-row:nth-of-type(10) { animation-delay: 0.32s; }
+  .activity-row:nth-of-type(n+11) { animation-delay: 0.35s; }
+  .activity-row:last-child { border-bottom: none; }
+  .activity-time {
+    width: 88px;
+    flex-shrink: 0;
+    padding-top: 1px;
+  }
+  .activity-date {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1a1a1a;
+    line-height: 20px;
+  }
+  .activity-clock {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-tertiary);
+    line-height: 20px;
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+  .activity-content {
+    flex: 1;
+    min-width: 0;
+  }
+  .activity-title {
+    font-size: 17px;
+    line-height: 24px;
+    font-weight: 600;
+    color: #000;
+    letter-spacing: -0.2px;
+    margin-bottom: 6px;
+  }
+  .activity-body {
+    font-size: 15px;
+    line-height: 24px;
+    color: #555;
+    font-weight: 400;
+    max-width: 64ch;
+    margin-bottom: 12px;
+  }
+  .activity-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .activity-tag {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-tertiary);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .activity-tag::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+  }
+  .activity-tag.agent::before    { background: #1a1a1a; }
+  .activity-tag.watch::before    { background: var(--blue); }
+  .activity-tag.labs::before     { background: var(--green); }
+  .activity-tag.pharmacy::before { background: var(--amber); }
+  .activity-tag.flag::before     { background: var(--red); }
+
+  /* Activity views — list and detail crossfade in place */
+  .activity-list-view,
+  .activity-detail-view {
+    transition: opacity 0.35s var(--ease-out), transform 0.45s var(--ease-spring);
+  }
+  .activity-list-view {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .activity-detail-view {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 56px;
+    opacity: 0;
+    transform: translateY(12px);
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+  }
+  .main-inner {
+    position: relative;
+  }
+  .main-inner.detail-open .activity-list-view {
+    opacity: 0;
+    transform: translateY(-8px);
+    pointer-events: none;
+  }
+  .main-inner.detail-open .activity-detail-view {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .ad-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #555;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px 14px;
+    margin: 0 -14px 28px;
+    border-radius: 999px;
+    transition: background 0.2s var(--ease-out), color 0.18s, gap 0.25s var(--ease-spring);
+    font-family: var(--sans);
+  }
+  .ad-back:hover { background: rgba(0,0,0,0.04); color: #000; gap: 12px; }
+  .ad-back svg { width: 14px; height: 14px; }
+  .ad-eyebrow {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: #555;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .ad-eyebrow .sep { color: rgba(0,0,0,0.22); }
+  .ad-title {
+    font-family: var(--serif);
+    font-size: 42px;
+    line-height: 48px;
+    letter-spacing: -0.8px;
+    font-weight: 400;
+    margin-bottom: 36px;
+    max-width: 22ch;
+  }
+  .ad-body {
+    font-size: 19px;
+    line-height: 30px;
+    color: #2a2a2a;
+    font-weight: 400;
+    max-width: 60ch;
+    text-wrap: pretty;
+  }
+  .ad-body p { margin-bottom: 20px; }
+  .ad-body p:last-child { margin-bottom: 0; }
+  .ad-quote {
+    border-left: 3px solid var(--amber);
+    padding: 4px 0 4px 20px;
+    margin: 24px 0;
+    font-family: var(--serif);
+    font-size: 22px;
+    line-height: 30px;
+    color: #1a1a1a;
+    font-style: italic;
+    max-width: 50ch;
+  }
+
+  /* Detail metadata sidebar */
+  .ad-meta {
+    align-self: start;
+    position: sticky;
+    top: 56px;
+  }
+  .ad-meta-card {
+    background: var(--surface-1);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 24px 24px 8px;
+    margin-bottom: 16px;
+  }
+  .ad-meta-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-tertiary);
+    margin-bottom: 16px;
+  }
+  .ad-meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    font-size: 13px;
+  }
+  .ad-meta-row:first-of-type { border-top: none; padding-top: 0; }
+  .ad-meta-row .k { color: #888; }
+  .ad-meta-row .v { color: #1a1a1a; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .ad-meta-row .v.green { color: var(--green); }
+  .ad-meta-row .v code {
+    font-family: ui-monospace, "SF Mono", monospace;
+    font-size: 12px;
+    background: rgba(0,0,0,0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .ad-related-row {
+    font-size: 13px;
+    line-height: 18px;
+    color: #555;
+    padding: 10px 0;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    display: flex;
+    gap: 10px;
+    cursor: pointer;
+    transition: color 0.18s;
+  }
+  .ad-related-row:first-of-type { border-top: none; padding-top: 0; }
+  .ad-related-row:hover { color: #000; }
+  .ad-related-row .when {
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- ──────── LEFT SIDEBAR ──────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="ws">
+      <div class="ws-mark">M</div>
+      <div class="ws-name">Meridian</div>
+      <button class="collapse-btn" onclick="toggleSidebar()" aria-label="Collapse sidebar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+      </button>
+    </div>
+
+    <div class="search" data-tip="Search" onclick="openSearch()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="search-input" placeholder="Search" readonly onclick="openSearch()">
+    </div>
+
+    <div class="nav-section">
+      <a class="nav-item" data-tip="Today" href="index.html" style="text-decoration:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        <span class="nav-label">Today</span>
+      </a>
+      <div class="nav-item" data-tip="Patients">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="nav-label">Patients</span>
+      </div>
+      <div class="nav-item active" data-tip="Activity">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span class="nav-label">Activity</span>
+      </div>
+      <div class="nav-item" data-tip="Inbox">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <span class="nav-label">Inbox</span>
+      </div>
+      <div class="nav-item" data-tip="Threads">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="nav-label">Threads</span>
+      </div>
+      <div class="nav-item" data-tip="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="nav-label">Settings</span>
+      </div>
+    </div>
+
+    <div class="pat-section">
+      <div class="nav-divider"></div>
+      <div class="section-label">This week's calls</div>
+      <div class="pat-row active" onclick="selectPatient(this)">
+        <div class="pat-avatar">JH</div>
+        <span class="pat-name">Jamie Hart</span>
+        <span class="pat-meta">10:00</span>
+      </div>
+      <div class="pat-row" onclick="selectPatient(this)">
+        <div class="pat-avatar">RD</div>
+        <span class="pat-name">Rachel Duong</span>
+        <span class="pat-meta">11:30</span>
+      </div>
+      <div class="pat-row" onclick="selectPatient(this)">
+        <div class="pat-avatar">MO</div>
+        <span class="pat-name">Marcus Okafor</span>
+        <span class="pat-meta">1:15</span>
+      </div>
+      <div class="pat-row" onclick="selectPatient(this)">
+        <div class="pat-avatar">PN</div>
+        <span class="pat-name">Priya Nair</span>
+        <span class="pat-meta">3:00</span>
+      </div>
+    </div>
+
+    <div class="me-divider"></div>
+    <div class="me" data-tip="Elena Vasquez, CFP">
+      <div class="pat-avatar">EV</div>
+      <span class="me-name">Elena Vasquez, CFP</span>
+      <button class="me-logout" aria-label="Log out" title="Log out" onclick="event.stopPropagation()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ──────── MAIN ──────── -->
+  <main class="main">
+    <div class="main-inner" id="activity-main">
+
+    <!-- LIST VIEW -->
+    <div class="activity-list-view">
+      <div class="page-header">
+        <div class="page-eyebrow">
+          <a href="index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Jamie Hart
+          </a>
+        </div>
+        <div class="page-title">Activity</div>
+        <div class="page-subtitle">What the agent observed and decided over the twelve weeks since the last quarterly call. Tap any entry to&nbsp;read&nbsp;the&nbsp;reasoning.</div>
+      </div>
+
+      <div class="activity-month-card">
+        <div class="activity-month">April 2026</div>
+
+      <div class="activity-row" data-event="apr1-brief" onclick="openDetail('apr1-brief')">
+        <div class="activity-time">
+          <div class="activity-date">Apr 1</div>
+          <div class="activity-clock">8:00 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Assembled the Q2 planning brief</div>
+          <div class="activity-body">Pulled twelve weeks of inbox, portfolio, and call signal into one brief for Elena's May 12 check-in. Lead with the +11.4% YTD framing; flag the stalled rebalance and the Adaeze forwards as the twin stories.</div>
+          <div class="activity-tags"><span class="activity-tag agent">Agent</span></div>
+        </div>
+      </div>
+
+      </div>
+      <div class="activity-month-card">
+        <div class="activity-month">March 2026</div>
+
+      <div class="activity-row" data-event="mar30-q1summary" onclick="openDetail('mar30-q1summary')">
+        <div class="activity-time">
+          <div class="activity-date">Mar 30</div>
+          <div class="activity-clock">9:14 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Sent the Q1 performance summary</div>
+          <div class="activity-body">Personal note attached about the private school decision. Jamie opened it twice in 48 hours, didn't reply. Held the send until mid-morning to land outside his pre-market routine.</div>
+          <div class="activity-tags"><span class="activity-tag agent">Agent · Outbound</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="mar30-close" onclick="openDetail('mar30-close')">
+        <div class="activity-time">
+          <div class="activity-date">Mar 30</div>
+          <div class="activity-clock">4:30 PM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Q1 booked at +11.4% YTD</div>
+          <div class="activity-body">Benchmark S&amp;P 500 returned +7.8%. Jamie's portfolio outpaced by 3.6 points — driven largely by the January rebalance executed on time. The accuracy bought a credit Jamie hasn't cashed yet.</div>
+          <div class="activity-tags"><span class="activity-tag labs">Market</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="mar25-reopen" onclick="openDetail('mar25-reopen')">
+        <div class="activity-time">
+          <div class="activity-date">Mar 25</div>
+          <div class="activity-clock">7:42 PM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Jamie reopened the Q1 summary — still no reply</div>
+          <div class="activity-body">Second open, 31 seconds, from his phone. No click through to the portfolio detail. Reading it as deliberation, not disinterest — he's holding on something.</div>
+          <div class="activity-tags"><span class="activity-tag pharmacy">Email signal</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="mar20-snapshot" onclick="openDetail('mar20-snapshot')">
+        <div class="activity-time">
+          <div class="activity-date">Mar 20</div>
+          <div class="activity-clock">10:00 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Sent a quiet portfolio snapshot</div>
+          <div class="activity-body">One-line message with the YTD chart. No ask, no CTA. Jamie opened 18 minutes later, replied "thanks." First response in nine days. Cadence returning to baseline.</div>
+          <div class="activity-tags"><span class="activity-tag agent">Agent · Outbound</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="mar23-passive" onclick="openDetail('mar23-passive')">
+        <div class="activity-time">
+          <div class="activity-date">Mar 16</div>
+          <div class="activity-clock">9:00 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Shifted to passive monitoring</div>
+          <div class="activity-body">Detected stress signals in Jamie's reply cadence — slower, shorter, no questions back. Reading the silence as market-anxiety, not disengagement. Did not push.</div>
+          <div class="activity-tags"><span class="activity-tag flag">Decision · Hold</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="mar12-fwd" onclick="openDetail('mar12-fwd')">
+        <div class="activity-time">
+          <div class="activity-date">Mar 12</div>
+          <div class="activity-clock">6:48 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Jamie forwarded thread to Adaeze — third time in six weeks</div>
+          <div class="activity-body">529 contribution thread. Forwarded within 90 seconds of opening, no commentary added. No reply on the main thread. She's reading every exchange without being cc'd in.</div>
+          <div class="activity-tags"><span class="activity-tag pharmacy">Email signal</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="mar16-forward" onclick="openDetail('mar16-forward')">
+        <div class="activity-time">
+          <div class="activity-date">Mar 2</div>
+          <div class="activity-clock">11:15 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Flagged the third email forward to Adaeze</div>
+          <div class="activity-body">Noted the pattern to Elena. Three forwards in six weeks crosses the "spouse-as-decision-maker" threshold in her prep rules. Recommended bringing Adaeze into the next call directly.</div>
+          <div class="activity-tags"><span class="activity-tag flag">Decision · Escalate</span></div>
+        </div>
+      </div>
+
+      </div>
+      <div class="activity-month-card">
+        <div class="activity-month">February 2026</div>
+
+      <div class="activity-row" data-event="mar9-draft" onclick="openDetail('mar9-draft')">
+        <div class="activity-time">
+          <div class="activity-date">Feb 16</div>
+          <div class="activity-clock">2:30 PM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Drafted savings restart language</div>
+          <div class="activity-body">Three drafts held for the next live call. Specific numbers attached: 14% → 6% → target 12%. Awaiting Elena's approval. Text drafts of money asks have 0% follow-through with Jamie.</div>
+          <div class="activity-tags"><span class="activity-tag agent">Agent · Draft</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="feb10-rebalance" onclick="openDetail('feb10-rebalance')">
+        <div class="activity-time">
+          <div class="activity-date">Feb 10</div>
+          <div class="activity-clock">9:00 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Portfolio rebalance — still stalled 45 days in</div>
+          <div class="activity-body">Authorized in December, queued for January execution, deferred at the Feb 8 call. International allocation now 6 points below target band. No immediate risk, but the drift is real and compounding.</div>
+          <div class="activity-tags"><span class="activity-tag labs">Market</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="feb8-q4dip" onclick="openDetail('feb8-q4dip')">
+        <div class="activity-time">
+          <div class="activity-date">Feb 8</div>
+          <div class="activity-clock">11:00 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Quarterly call — pulled $40K in gains forward against advice</div>
+          <div class="activity-body">Q4 dip spooked Jamie. Savings restart deferred again — "after taxes." Adaeze not on the call. Tone shifted at minute 12 when the Q4 dip was raised; the decision was emotional, not strategic.</div>
+          <div class="activity-tags"><span class="activity-tag flag">Call · Decision</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="feb5-prep" onclick="openDetail('feb5-prep')">
+        <div class="activity-time">
+          <div class="activity-date">Feb 5</div>
+          <div class="activity-clock">8:00 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Pre-call brief assembled for Elena</div>
+          <div class="activity-body">Six weeks of signal compressed into one page: savings pattern, 529 opens, two soft asks for Adaeze to join. Top-of-prep was the rebalance commitment; Elena reordered it under the savings ask at the last minute.</div>
+          <div class="activity-tags"><span class="activity-tag agent">Agent</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="mar2-529opens" onclick="openDetail('mar2-529opens')">
+        <div class="activity-time">
+          <div class="activity-date">Feb 2</div>
+          <div class="activity-clock">7:30 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Jamie opened the 529 contribution email four times</div>
+          <div class="activity-body">Four opens, zero clicks. Each under 30 seconds. Kids are 17 and 15 — the timing is on his mind, the action isn't. Flagged warm but stuck.</div>
+          <div class="activity-tags"><span class="activity-tag pharmacy">Email signal</span></div>
+        </div>
+      </div>
+
+      </div>
+      <div class="activity-month-card">
+        <div class="activity-month">January 2026</div>
+
+      <div class="activity-row" data-event="jan25-reminder" onclick="openDetail('jan25-reminder')">
+        <div class="activity-time">
+          <div class="activity-date">Jan 25</div>
+          <div class="activity-clock">10:00 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Reminded Jamie about the Feb 8 quarterly call</div>
+          <div class="activity-body">Soft ping, logistics-framed. "Feb 8 is on the books — want me to send Adaeze a calendar invite too?" He ignored the Adaeze part. Confirmed the time.</div>
+          <div class="activity-tags"><span class="activity-tag agent">Agent · Outbound</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="feb23-stalled" onclick="openDetail('feb23-stalled')">
+        <div class="activity-time">
+          <div class="activity-date">Jan 19</div>
+          <div class="activity-clock">8:15 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Auto-surfaced the January rebalance commitment</div>
+          <div class="activity-body">60-day aging trigger fired. Pushed to the top of Elena's prep view before the next live call; demoted other items by one slot.</div>
+          <div class="activity-tags"><span class="activity-tag flag">Decision · Surface</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="jan15-529" onclick="openDetail('jan15-529')">
+        <div class="activity-time">
+          <div class="activity-date">Jan 15</div>
+          <div class="activity-clock">7:00 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">529 contribution window email sent</div>
+          <div class="activity-body">Annual $10K state-deduction reminder. Specific numbers, no CTA button. Jamie opened at 7:21 AM, dwelled 28 seconds, didn't reply. He'll open it three more times over the next 18 days.</div>
+          <div class="activity-tags"><span class="activity-tag agent">Agent · Outbound</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="feb16-celebrate" onclick="openDetail('feb16-celebrate')">
+        <div class="activity-time">
+          <div class="activity-date">Jan 12</div>
+          <div class="activity-clock">4:00 PM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Celebrated crossing +10% YTD</div>
+          <div class="activity-body">Short note tied to Jamie's retirement target — framed as "two years closer than the December plan said." First positive note in four weeks. Calibrated short — two sentences — to avoid contrast with the harder asks queued behind it.</div>
+          <div class="activity-tags"><span class="activity-tag agent">Agent · Outbound</span></div>
+        </div>
+      </div>
+
+      </div>
+    </div>
+
+    <!-- DETAIL VIEW -->
+    <div class="activity-detail-view">
+      <div class="ad-content">
+        <button class="ad-back" onclick="closeDetail()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Back to activity
+        </button>
+        <div class="ad-eyebrow" id="ad-eyebrow">Mar 30, 2026<span class="sep">·</span>9:14 AM</div>
+        <div class="ad-title" id="ad-title">Sent the Q1 performance summary</div>
+        <div class="ad-body" id="ad-body"></div>
+      </div>
+      <div class="ad-meta">
+        <div class="ad-meta-card" id="ad-meta-card"></div>
+        <div class="ad-meta-card" id="ad-related-card"></div>
+      </div>
+    </div>
+
+    </div>
+  </main>
+
+  <!-- ──────── RIGHT PANEL (PUSHES) ──────── -->
+  <aside class="side-panel">
+    <div class="side-inner" id="side-inner"></div>
+  </aside>
+
+</div>
+
+<!-- Panel templates -->
+<template id="tpl-activity">
+  <button class="side-close" onclick="closePanel()" aria-label="Close">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <div class="side-eyebrow">Between calls</div>
+  <div class="side-title">Agent activity <span class="side-title-meta">6 events</span></div>
+
+  <div class="side-item green">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Week 12 · Mar 30</div>
+      <div class="side-item-title">Sent the Q1 performance summary</div>
+      <div class="side-item-text">Personal note attached about the private school decision. Jamie opened it twice, didn't reply.</div>
+    </div>
+  </div>
+
+  <div class="side-item amber">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Week 10 · Mar 16</div>
+      <div class="side-item-title">Shifted to passive monitoring</div>
+      <div class="side-item-text">Reply cadence slowed, messages shorter, no questions back. Reading the silence as market-anxiety, not disengagement. Did not push.</div>
+    </div>
+  </div>
+
+  <div class="side-item amber">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="22" x2="4" y2="15"/><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Week 8 · Mar 2</div>
+      <div class="side-item-title">Flagged the third email forward to Adaeze</div>
+      <div class="side-item-text">Three forwards in six weeks. She's reading every financial thread without being cc'd in.</div>
+    </div>
+  </div>
+
+  <div class="side-item">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Week 6 · Feb 16</div>
+      <div class="side-item-title">Drafted savings restart language</div>
+      <div class="side-item-text">14% → 6% → target 12%. Held for the next live call. Text drafts of money asks have 0% follow-through with Jamie.</div>
+    </div>
+  </div>
+
+  <div class="side-item">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Week 4 · Feb 2</div>
+      <div class="side-item-title">Noticed the 529 email opened four times</div>
+      <div class="side-item-text">Zero clicks. Timing is on his mind, the action isn't.</div>
+    </div>
+  </div>
+
+  <div class="side-item green">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Week 1 · Jan 12</div>
+      <div class="side-item-title">Celebrated crossing +10% YTD</div>
+      <div class="side-item-text">Framed as "two years closer than the December plan said." First positive note in four weeks.</div>
+    </div>
+    <span class="side-item-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></span>
+  </div>
+</template>
+
+<template id="tpl-commit">
+  <button class="side-close" onclick="closePanel()" aria-label="Close">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <div class="side-eyebrow">Set Dec 12, 2025</div>
+  <div class="side-title">Commitments <span class="side-title-meta">3 active</span></div>
+
+  <div class="side-item green">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Complete</div>
+      <div class="side-item-title">January rebalance to target bands</div>
+      <div class="side-item-text">Authorized Dec 12, executed Jan 14. International allocation brought to 18% target. The accuracy drove the Q1 outperformance.</div>
+    </div>
+  </div>
+
+  <div class="side-item red">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Stalled — second time</div>
+      <div class="side-item-title">Restart monthly savings contributions</div>
+      <div class="side-item-text">Agreed in December, reconfirmed in January, deferred at the Feb 8 call. The pattern is "yes in the room, no after." Recommend: put 14% → 6% → target 12% on screen during the call and ask Jamie to pick the restart date before he leaves. Don't let it float.</div>
+    </div>
+  </div>
+
+  <div class="side-item amber">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Soft ask — two dropped</div>
+      <div class="side-item-title">Adaeze on the next live call</div>
+      <div class="side-item-text">Asked in November, asked again in January. She's clearly involved — three forwards in six weeks — but hasn't been invited in directly. Recommend: warm handoff, offer a 30-min joint call framed as "I want to hear her questions too," let Jamie pick the time.</div>
+    </div>
+  </div>
+</template>
+
+<!-- ──────── SEARCH MODAL ──────── -->
+<div class="search-modal" id="search-modal" onclick="if(event.target===this)closeSearch()">
+  <div class="search-modal-card">
+    <div class="search-modal-top">
+      <svg class="search-glass" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="search-modal-input" id="search-modal-input" placeholder="Search clients, threads, notes…" autocomplete="off">
+      <button class="search-modal-close" onclick="closeSearch()" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="search-modal-list">
+      <div class="search-section-label">This week's calls</div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon">JH</div>
+        <div class="search-row-title">Jamie Hart</div>
+        <div class="search-row-meta">10:00 · Q1 review</div>
+      </div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon">RD</div>
+        <div class="search-row-title">Rachel Duong</div>
+        <div class="search-row-meta">11:30 · Retirement check-in</div>
+      </div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon">MO</div>
+        <div class="search-row-title">Marcus Okafor</div>
+        <div class="search-row-meta">1:15 · Estate planning</div>
+      </div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon">PN</div>
+        <div class="search-row-title">Priya Nair</div>
+        <div class="search-row-meta">3:00 · Rollover review</div>
+      </div>
+      <div class="search-section-label">Recent</div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div class="search-row-title">Jamie Hart — Feb 8 call notes</div>
+      </div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+        <div class="search-row-title">Thread: Rachel Duong 401k rollover</div>
+      </div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+        <div class="search-row-title">Activity: Jamie Week 10 — passive monitoring</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ──────── ASK BAR ──────── -->
+<div class="cv-chat" role="region" aria-label="Ask about Jamie">
+  <div class="cv-chat-panel collapsed" id="chat-panel">
+    <div class="cv-chat-content">
+      <div class="cv-chat-scroll" id="chat-scroll"></div>
+      <div class="cv-chat-presets" id="chat-chips"></div>
+      <form onsubmit="sendInput(event)">
+        <input id="chat-input" class="cv-chat-input" placeholder="Ask about Jamie…" autocomplete="off">
+        <div class="cv-chat-bottom">
+          <div class="cv-chat-icons">
+            <button type="button" class="cv-chat-icon" title="Mention" aria-label="Mention">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"/></svg>
+            </button>
+            <button type="button" class="cv-chat-icon" title="Attach" aria-label="Attach">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 17.99 8.8l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.49"/></svg>
+            </button>
+            <button type="button" class="cv-chat-icon" title="Voice" aria-label="Voice">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10a7 7 0 0 1-14 0"/><path d="M12 19v3"/></svg>
+            </button>
+          </div>
+          <button type="submit" class="cv-chat-send" aria-label="Send">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>
+          </button>
+        </div>
+      </form>
+    </div>
+    <div class="cv-chat-collapsed-shell">
+      <button class="cv-chat-collapsed-bar" onclick="expandChat()" aria-label="Ask about Jamie">
+        <span class="ph">Ask about Jamie…</span>
+        <span class="send-mini">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+const app = document.getElementById('app');
+const sideInner = document.getElementById('side-inner');
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('expanded');
+}
+
+/* ─── Activity detail view ─── */
+const ACTIVITY_DETAILS = {
+  'apr1-brief': {
+    eyebrow: 'Apr 1, 2026 · 8:00 AM',
+    title: 'Assembled the Q2 planning brief',
+    body: `<p>Pulled twelve weeks of signal into a single brief for Elena's May 12 check-in: 47 inbound/outbound threads, 31 portfolio events, two live calls, three email forwards to Adaeze, and eighteen days of reply-cadence shifts.</p>
+      <p>The hierarchy is intentional. Lead with <strong>+11.4% YTD</strong> — Jamie is going to open this brief expecting to be asked for something, and that's a worse opening than the truth. Then name the twin stories out loud: the savings restart still hasn't moved, and Adaeze is making the calls without being in the room.</p>
+      <p>Recommending the next live call include Adaeze by invitation, not suggestion. Three forwards in six weeks isn't a signal to mention anymore — it's the thing to act on.</p>`,
+    meta: { status: 'Complete', trigger: 'Quarterly close + 2wk', source: 'Agent', workflow: 'call-prep v3', confidence: '0.92', session: 'br21kx9p…7f2c4' },
+    related: [
+      { when: 'Mar 30', text: 'Sent the Q1 performance summary' },
+      { when: 'Mar 2', text: 'Flagged the third email forward to Adaeze' },
+      { when: 'Feb 16', text: 'Drafted savings restart language' },
+    ],
+  },
+  'mar30-q1summary': {
+    eyebrow: 'Mar 30, 2026 · 9:14 AM',
+    title: 'Sent the Q1 performance summary',
+    body: `<p>Q1 closed at 8:31 AM. I held the send until 9:14 — Jamie's pre-market hour is when he's most likely to skim without landing, and I didn't want a +11.4% number filed under "later."</p>
+      <p>Framed it declarative, not celebratory. Lead line: <em>"Q1 is in. You're up 11.4%, ahead of the benchmark by 3.6 points. Full detail attached."</em> Personal note at the bottom referenced the private school decision we'd discussed in February — one sentence, no ask.</p>
+      <div class="ad-quote">(no reply)</div>
+      <p>He opened it twice in 48 hours — first at 10:02 AM from desktop, then at 7:42 PM from phone. Each open under a minute. No click through to the portfolio detail. Reading it as deliberation, not disinterest. He's holding on something — probably the school cost, probably the savings ask he knows is queued behind this note.</p>`,
+    meta: { status: 'Complete', trigger: 'Quarterly close', source: 'Agent', workflow: 'quarterly-summary v2', confidence: '0.93', session: 'qs7a4ex2…9de18' },
+    related: [
+      { when: 'Mar 30', text: 'Q1 booked at +11.4% YTD' },
+      { when: 'Mar 25', text: 'Jamie reopened the Q1 summary — still no reply' },
+      { when: 'Mar 16', text: 'Shifted to passive monitoring' },
+    ],
+  },
+  'mar30-close': {
+    eyebrow: 'Mar 30, 2026 · 4:30 PM',
+    title: 'Q1 booked at +11.4% YTD',
+    body: `<p>Portfolio closed Q1 at <strong>+11.4%</strong>. Benchmark S&amp;P 500 returned +7.8% over the same period. Outperformance: <strong>+3.6 points</strong>, driven largely by the January rebalance that was executed on time despite the subsequent drift.</p>
+      <p>Key contributors: tech overweight (+4.2pt contribution), international developed (+2.1pt), short-duration treasuries unchanged, international allocation still below target band by 6 points as of March 30.</p>
+      <p>The accuracy of the January call bought a credit Jamie hasn't cashed yet. Elena will want to reference this number in the next live call, but I'd advise against leading with it — Jamie reads portfolio wins as implicit permission to defer the savings ask, and we've seen that cycle twice already this fiscal year.</p>`,
+    meta: { status: 'Complete', trigger: 'Market close Q1', source: 'Market feed', workflow: 'quarterly-close v1', confidence: '—', session: 'mc4k2m7p…3f1b5' },
+    related: [
+      { when: 'Mar 30', text: 'Sent the Q1 performance summary' },
+      { when: 'Feb 10', text: 'Portfolio rebalance — still stalled 45 days in' },
+      { when: 'Jan 12', text: 'Celebrated crossing +10% YTD' },
+    ],
+  },
+  'mar25-reopen': {
+    eyebrow: 'Mar 25, 2026 · 7:42 PM',
+    title: 'Jamie reopened the Q1 summary — still no reply',
+    body: `<p>Second open at 7:42 PM, from phone, duration 31 seconds. First open was Mar 23 at 10:02 AM from desktop, duration 54 seconds.</p>
+      <p>Two opens, zero clicks into the detailed breakdown, no reply. The pattern I track here is <em>dwell without action</em>: an open under 60 seconds without a click usually means he's scanning for the number and not reading the context. The second open after 48 hours usually means something specific is nagging — he's not re-reading for pleasure.</p>
+      <p>Best read: he's deciding how to respond. The two most likely drafts in his head are (a) thank-you + punt, or (b) ask about the private school math. I'm holding outbound. If he replies (a), I'll send the one-line savings restart draft. If (b), I'll forward the 529 follow-up and ask Elena to put Adaeze on the next call.</p>`,
+    meta: { status: 'Observed', trigger: 'Email reopen signal', source: 'Agent', workflow: 'email-signal v2', confidence: '0.84', session: 'em3k8m1p…4c7e9' },
+    related: [
+      { when: 'Mar 30', text: 'Sent the Q1 performance summary' },
+      { when: 'Mar 20', text: 'Sent a quiet portfolio snapshot' },
+    ],
+  },
+  'mar20-snapshot': {
+    eyebrow: 'Mar 20, 2026 · 10:00 AM',
+    title: 'Sent a quiet portfolio snapshot',
+    body: `<p>Eight days into the passive-monitoring window. Sent a one-line note with the YTD chart attached — no ask, no CTA, no follow-up question.</p>
+      <div class="ad-quote">"One number for your Friday: +9.8% YTD. Nothing to do. — Elena"</div>
+      <p>Jamie opened 18 minutes later, replied <em>"thanks"</em>. Short, flat, but present — first response in nine days. Cadence returning to baseline.</p>
+      <p>Logging this as the move that ended the quiet stretch. The framing mattered: the ask rate during a stress window is zero, so the only outbound that works is zero-ask. The channel comes back online when you use it for something other than the thing you want.</p>`,
+    meta: { status: 'Complete', trigger: 'Silence T+8 days', source: 'Agent', workflow: 'quiet-touch v2', confidence: '0.87', session: 'qt2k7p3m…5d8a1' },
+    related: [
+      { when: 'Mar 16', text: 'Shifted to passive monitoring' },
+      { when: 'Mar 25', text: 'Jamie reopened the Q1 summary — still no reply' },
+    ],
+  },
+  'mar23-passive': {
+    eyebrow: 'Mar 16, 2026 · 9:00 AM',
+    title: 'Shifted to passive monitoring',
+    body: `<p>Jamie's reply cadence shifted starting March 9. Replies went from median 3h 12m to median 19h 40m. Length dropped from average 43 words to average 8 words. No questions back, no forwards inbound, no portal activity.</p>
+      <p>Two options. Send the next queued touch (the savings draft was ready) or hold. I held.</p>
+      <p>The pattern in Jamie's file says reminders during a stress window don't land — they get read as pressure, filed, and deepen the retreat. The pattern also says he comes back to the channel when there's something quiet to come back to: a number, a clean touch with no ask behind it. That's what I sent on March 20.</p>
+      <p>So: no outbound for seven days. Continue ingesting portfolio and email signal. Resume light prompts only after cadence returns to baseline. Told Elena before the next prep call so she wouldn't misread the silence as disengagement.</p>`,
+    meta: { status: 'Decision · Hold', trigger: '72hr cadence shift', source: 'Agent', workflow: 'silence-handler v3', confidence: '0.83', session: 'sh9k4n2j…b7c3e' },
+    related: [
+      { when: 'Mar 20', text: 'Sent a quiet portfolio snapshot' },
+      { when: 'Mar 2', text: 'Flagged the third email forward to Adaeze' },
+      { when: 'Mar 30', text: 'Sent the Q1 performance summary' },
+    ],
+  },
+  'mar12-fwd': {
+    eyebrow: 'Mar 12, 2026 · 6:48 AM',
+    title: 'Jamie forwarded thread to Adaeze — third time in six weeks',
+    body: `<p>529 contribution thread (original sent Jan 15). Forwarded at 6:48 AM from Jamie's phone, 91 seconds after opening. No commentary added to the forward. No reply to Elena on the main thread.</p>
+      <p>Forward history this window:</p>
+      <ul style="font-size:18px;line-height:30px;color:#2a2a2a;padding-left:24px;margin:16px 0">
+        <li>Feb 3 — Q4 call summary forwarded to Adaeze (47 sec after open)</li>
+        <li>Feb 24 — savings-restart context email forwarded (2 min after open)</li>
+        <li>Mar 12 — 529 contribution thread forwarded (91 sec after open)</li>
+      </ul>
+      <p>Three forwards in 36 days. Each under two minutes from open to forward — he's not deliberating, he's routing. Adaeze is reading every exchange on financial decisions without being cc'd.</p>
+      <p>This is the data that triggers the Mar 2 escalation flag (the agent's "Flagged the third email forward" entry). The pattern isn't "spouse is involved," it's "spouse is the decision-maker and Jamie is acting as the interface." Different fact, different move.</p>`,
+    meta: { status: 'Observed', trigger: 'Email forward event', source: 'Agent', workflow: 'forward-signal v2', confidence: '—', session: 'fw8k2m1p…6a9c3' },
+    related: [
+      { when: 'Mar 2', text: 'Flagged the third email forward to Adaeze' },
+      { when: 'Feb 2', text: 'Jamie opened the 529 contribution email four times' },
+    ],
+  },
+  'mar16-forward': {
+    eyebrow: 'Mar 2, 2026 · 11:15 AM',
+    title: 'Flagged the third email forward to Adaeze',
+    body: `<p>Pattern threshold: three forwards in six weeks crosses the "spouse-as-decision-maker" signal in Elena's prep rules. Hit threshold this morning.</p>
+      <p>Logged the pattern to Elena's prep file with explicit framing: <em>Adaeze is reading every financial decision thread within two minutes of Jamie opening it. She's not absent. She's upstream of the nod Jamie gives on calls, and the nod isn't authoritative.</em></p>
+      <p>Recommended action for the next live call: Elena invites Adaeze directly, by name, not as "you're welcome to bring your partner." Framed as needing her input on the private school decision, which gives her a specific reason that's independent of the savings ask. If Jamie declines, that's data too.</p>
+      <p>The finance version of a pattern match — same shape I've tracked in other relationships where one partner holds the ledger and the other holds the decisions. The only reliable move is to put both in the room.</p>`,
+    meta: { status: 'Decision · Escalate', trigger: 'Forward pattern (3/6wk)', source: 'Agent', workflow: 'pattern-detector v4', confidence: '0.89', session: 'pd4m7k3n…9c8d6' },
+    related: [
+      { when: 'Mar 12', text: 'Jamie forwarded thread to Adaeze — third time in six weeks' },
+      { when: 'Feb 16', text: 'Drafted savings restart language' },
+      { when: 'Feb 8', text: 'Quarterly call — pulled $40K in gains forward against advice' },
+    ],
+  },
+  'mar9-draft': {
+    eyebrow: 'Feb 16, 2026 · 2:30 PM',
+    title: 'Drafted savings restart language',
+    body: `<p>Three drafts, held for the next live call. Specific numbers embedded, no soft framing:</p>
+      <div class="ad-quote">"14% → 6% → target 12%. Restart date: [blank]. We put the number on screen, Jamie picks the date before the call ends."</div>
+      <p>Drafts compared against Jamie's prior accepted phrasings from 2023–2024. He responds to specific numbers, not ranges. He responds to "pick a date" better than "when do you want to start." He does not respond to money asks delivered in text — zero historical follow-through on savings asks made outside a live channel.</p>
+      <p>Holding all three drafts for the next live call. Awaiting Elena's selection. Recommended draft #2 (most specific, most numeric, least euphemistic). Told Elena to expect the draft in her prep packet ahead of the Feb 8 call; she pushed it under the rebalance item at the last minute.</p>`,
+    meta: { status: 'Held · Awaiting approval', trigger: 'Pre-call prep window', source: 'Agent', workflow: 'draft-compare v3', confidence: '0.85', session: 'dc5k9m2p…4a7b3' },
+    related: [
+      { when: 'Feb 8', text: 'Quarterly call — pulled $40K in gains forward against advice' },
+      { when: 'Feb 5', text: 'Pre-call brief assembled for Elena' },
+      { when: 'Jan 19', text: 'Auto-surfaced the January rebalance commitment' },
+    ],
+  },
+  'feb10-rebalance': {
+    eyebrow: 'Feb 10, 2026 · 9:00 AM',
+    title: 'Portfolio rebalance — still stalled 45 days in',
+    body: `<p>Rebalance authorized Dec 12, queued for January execution, deferred at the Feb 8 call when Jamie pulled $40K in gains forward instead. As of this morning, international developed allocation is <strong>6 points below target band</strong> (target 18%, actual 12.1%).</p>
+      <p>No immediate risk. The drift is real and compounding — every week the allocation stays out of band, the rebalancing tax cost grows and the tracking error widens. Not a number that shows up in the YTD print, but it will show up in the Q3 review.</p>
+      <p>I'm not surfacing this as urgent. Surfacing it as <em>still stalled, aging</em> — which is the prep-file flag I set on Jan 19 at the 60-day aging trigger. Elena can decide whether to raise it in the next touch or hold it for the May live call. My recommendation: hold it. The savings restart is the bigger fight this quarter and raising both in one call is how both get deferred.</p>`,
+    meta: { status: 'Flagged · Aging', trigger: '45-day drift check', source: 'Portfolio ledger', workflow: 'drift-monitor v2', confidence: '—', session: 'dr2k8m7p…3b9c1' },
+    related: [
+      { when: 'Jan 19', text: 'Auto-surfaced the January rebalance commitment' },
+      { when: 'Feb 8', text: 'Quarterly call — pulled $40K in gains forward against advice' },
+    ],
+  },
+  'feb8-q4dip': {
+    eyebrow: 'Feb 8, 2026 · 11:00 AM',
+    title: 'Quarterly call — pulled $40K in gains forward against advice',
+    body: `<p>65-minute live call, 3 people (Jamie, Elena, me on transcript). Adaeze not on the call, despite the Jan 25 soft invite.</p>
+      <p>Jamie pulled <strong>$40,000 in realized gains forward</strong>, against Elena's explicit recommendation to hold through Q1. His reasoning was loss-aversion framed as prudence: <em>"If Q1 looks like Q4, I'd rather lock it in now."</em> He named the Q4 dip three times in the call.</p>
+      <p>Audio analysis: Jamie's tone shifted at minute 12 when Elena referenced the December drawdown. Vocal tension held through minute 34, resolved when Elena moved off performance onto the savings restart. That was the tell — the Q4 decision was emotional, not strategic. He was protecting against a feeling, not managing a position.</p>
+      <p>Savings restart deferred again. His phrasing: <em>"after taxes, once we see what the school bill looks like."</em> The private-school decision is doing the work of <em>reasonable-sounding deferral</em> — it's the external reason he reaches for every time the ask lands.</p>
+      <p>Logged the call, flagged the rebalance commitment as now second-time stalled, noted the Adaeze absence as now third call without her despite involvement signals. The pattern is no longer ambiguous.</p>`,
+    meta: { status: 'Complete', trigger: 'Quarterly call Feb 8', source: 'Call transcript + audio', workflow: 'call-analysis v3', confidence: '0.91', session: 'ca7p2m8k…3d4e9' },
+    related: [
+      { when: 'Feb 16', text: 'Drafted savings restart language' },
+      { when: 'Feb 10', text: 'Portfolio rebalance — still stalled 45 days in' },
+      { when: 'Mar 2', text: 'Flagged the third email forward to Adaeze' },
+    ],
+  },
+  'feb5-prep': {
+    eyebrow: 'Feb 5, 2026 · 8:00 AM',
+    title: 'Pre-call brief assembled for Elena',
+    body: `<p>Six weeks of signal compressed into a one-page brief for Elena's Feb 8 call. Sequenced by impact, not chronology:</p>
+      <ol style="font-size:18px;line-height:30px;color:#2a2a2a;padding-left:24px;margin:16px 0">
+        <li>Rebalance commitment authorized Dec, queued Jan, not yet executed</li>
+        <li>Savings restart: nodded in Dec, reconfirmed in Jan, no action</li>
+        <li>529 opens: four in Jan, zero clicks — warm but stuck</li>
+        <li>Adaeze signal: two forwards, no direct involvement yet</li>
+        <li>Private school decision landing in Feb per Dec conversation</li>
+      </ol>
+      <p>Top-of-prep was the rebalance. Elena reordered it under the savings ask at the last minute — her read was that raising the execution lapse before the savings ask would read as pressure stacking. Defensible; we went with it.</p>
+      <p>Net effect: the rebalance wasn't raised on the Feb 8 call, and is now aging into second-stall territory. Not a mistake — the call prioritization was right given the savings fight — but worth logging so the next prep cycle knows the cost.</p>`,
+    meta: { status: 'Complete', trigger: 'Pre-call T-72h', source: 'Agent', workflow: 'call-prep v3', confidence: '0.88', session: 'cp3k7m4p…8a2b6' },
+    related: [
+      { when: 'Feb 8', text: 'Quarterly call — pulled $40K in gains forward against advice' },
+      { when: 'Jan 19', text: 'Auto-surfaced the January rebalance commitment' },
+    ],
+  },
+  'mar2-529opens': {
+    eyebrow: 'Feb 2, 2026 · 7:30 AM',
+    title: 'Jamie opened the 529 contribution email four times',
+    body: `<p>Opens over 18 days: Jan 15 (7:21 AM, 28 sec), Jan 21 (9:04 PM, 22 sec), Jan 28 (6:58 AM, 19 sec), Feb 2 (7:30 AM, 24 sec). Four opens, zero clicks into the contribution flow, no reply.</p>
+      <p>Each open under 30 seconds. Four opens, zero clicks reads as <em>thinking about it</em>, not <em>ignoring it</em>. The timing is on his mind; the action isn't. Kids are 17 and 15 — the window narrows each year and Jamie knows the math, which is probably why the email keeps getting opened and not clicked.</p>
+      <p>Flagged warm but stuck. Did not send a follow-up. The email is doing its job as a recurring prompt; a second email would convert it from prompt to pressure. The right move is to raise 529 on the next live call with Adaeze present — she's the one making this call, based on the forward pattern.</p>`,
+    meta: { status: 'Observed', trigger: 'Repeat-open threshold', source: 'Agent', workflow: 'email-signal v2', confidence: '0.86', session: 'em4m7k2p…9d3a5' },
+    related: [
+      { when: 'Mar 12', text: 'Jamie forwarded thread to Adaeze — third time in six weeks' },
+      { when: 'Jan 15', text: '529 contribution window email sent' },
+      { when: 'Mar 2', text: 'Flagged the third email forward to Adaeze' },
+    ],
+  },
+  'jan25-reminder': {
+    eyebrow: 'Jan 25, 2026 · 10:00 AM',
+    title: 'Reminded Jamie about the Feb 8 quarterly call',
+    body: `<p>Soft ping, logistics-framed:</p>
+      <div class="ad-quote">"Feb 8 is on the books, 11:00 AM. Want me to send Adaeze a calendar invite too? — Elena"</div>
+      <p>Jamie confirmed the time within 14 minutes. Did not acknowledge the Adaeze part. This is the second soft invite she's ignored this year (first was Nov 18 prep email; both dropped without reply).</p>
+      <p>The Adaeze-invite tactic has hit its limit as a soft ask. Two dropped soft-invites crosses the threshold; the next ask needs to be direct, by name, with a specific reason (private school decision). Logged for the Feb 5 prep packet — Elena ended up holding that ask for the live call, which is a third soft miss.</p>`,
+    meta: { status: 'Complete', trigger: 'Pre-call T-14d', source: 'Agent', workflow: 'gentle-reminder v3', confidence: '0.90', session: 'gr8k3m1p…2f5c7' },
+    related: [
+      { when: 'Feb 8', text: 'Quarterly call — pulled $40K in gains forward against advice' },
+      { when: 'Mar 2', text: 'Flagged the third email forward to Adaeze' },
+    ],
+  },
+  'feb23-stalled': {
+    eyebrow: 'Jan 19, 2026 · 8:15 AM',
+    title: 'Auto-surfaced the January rebalance commitment',
+    body: `<p>60-day aging trigger fired this morning. Rebalance was authorized Dec 12; by Jan 19 it had stalled 38 days past the agreed January execution window.</p>
+      <p>Promoted it to the top of Elena's prep view, demoted the 529 follow-up and the Q4 performance item by one slot each. Added a "second-stall watch" flag on the prep file — meaning if this item slips a second execution window, it escalates to amber.</p>
+      <p>The aging-trigger logic is calibrated against Jamie's specific pattern: he agrees in the room, acts outside the room 70% of the time. When the 30% miss happens, the first reminder lands better as a prep-view surfacing than as a direct ping. Let Elena raise it in a live channel, don't text the ask.</p>
+      <p>Outcome: Elena did not raise it on the Feb 8 call (reordered under the savings ask). Now in second-stall territory as of Feb 10. Escalating to amber on the prep file.</p>`,
+    meta: { status: 'Decision · Surface', trigger: 'Aging (60 days)', source: 'Agent', workflow: 'aging-trigger v2', confidence: '—', session: 'at5k9m2p…3c7e8' },
+    related: [
+      { when: 'Feb 10', text: 'Portfolio rebalance — still stalled 45 days in' },
+      { when: 'Feb 5', text: 'Pre-call brief assembled for Elena' },
+      { when: 'Feb 8', text: 'Quarterly call — pulled $40K in gains forward against advice' },
+    ],
+  },
+  'jan15-529': {
+    eyebrow: 'Jan 15, 2026 · 7:00 AM',
+    title: '529 contribution window email sent',
+    body: `<p>Annual contribution window opens Jan 1; state tax deduction caps at $10K per filer. This is the first-touch email of the year, sent at 7:00 AM to land in Jamie's morning inbox review.</p>
+      <p>Specific numbers, no CTA button. Lead line: <em>"$10K state deduction window is open. For Maya's timeline, every year counts more than the last."</em> Maya is the 15-year-old; the 17-year-old is Theo. Jamie responds to the kids' names more reliably than to generic family framing.</p>
+      <p>Jamie opened at 7:21 AM, dwelled 28 seconds, didn't reply. He'll open it three more times over the next 18 days — that's the repeat-open signal that triggers the Feb 2 flag. This is the email that starts the whole 529 thread; the forward pattern begins here too.</p>`,
+    meta: { status: 'Complete · No reply', trigger: 'Annual window (Jan 1)', source: 'Agent', workflow: 'seasonal-reminder v2', confidence: '0.89', session: 'sr6k3m8p…4a1f2' },
+    related: [
+      { when: 'Feb 2', text: 'Jamie opened the 529 contribution email four times' },
+      { when: 'Mar 12', text: 'Jamie forwarded thread to Adaeze — third time in six weeks' },
+    ],
+  },
+  'feb16-celebrate': {
+    eyebrow: 'Jan 12, 2026 · 4:00 PM',
+    title: 'Celebrated crossing +10% YTD',
+    body: `<p>Portfolio crossed +10% YTD at market close Jan 12. Sent a short note at 4:00 PM tied to Jamie's retirement target — framed as <em>"two years closer than the December plan said"</em>, not as a win to celebrate.</p>
+      <p>Calibrated deliberately short — two sentences, one number, one outcome frame. This is the first positive note in four weeks and it needs to land as information, not pressure. If the note is too warm, the subtext becomes <em>"...so you can finally restart savings"</em> and Jamie reads it as a setup. Two sentences keeps it clean.</p>
+      <p>He replied <em>"appreciate it"</em> 47 minutes later. Short, warm, no questions back. Logging this as the cadence baseline I'll measure against when he goes quiet in March — three-word positive reply is the healthy end of his range.</p>`,
+    meta: { status: 'Complete', trigger: 'YTD milestone crossed', source: 'Agent', workflow: 'milestone-note v2', confidence: '0.91', session: 'mn2k7p4m…8e3b1' },
+    related: [
+      { when: 'Mar 30', text: 'Q1 booked at +11.4% YTD' },
+      { when: 'Mar 30', text: 'Sent the Q1 performance summary' },
+      { when: 'Feb 16', text: 'Drafted savings restart language' },
+    ],
+  },
+};
+
+// Default detail for events without rich content
+function defaultDetail(key, row) {
+  const title = row.querySelector('.activity-title')?.textContent || 'Activity event';
+  const body = row.querySelector('.activity-body')?.textContent || '';
+  const date = row.querySelector('.activity-date')?.textContent || '';
+  const clock = row.querySelector('.activity-clock')?.textContent || '';
+  const tagText = row.querySelector('.activity-tag')?.textContent || 'Agent';
+  return {
+    eyebrow: date + ', 2026 · ' + clock,
+    title: title,
+    body: '<p>' + body + '</p>',
+    meta: {
+      status: 'Observed',
+      trigger: 'Routine sync',
+      source: tagText,
+      workflow: 'log v1',
+      confidence: '—',
+      session: key + '…0001',
+    },
+    related: [],
+  };
+}
+
+function openDetail(key) {
+  const row = document.querySelector(`[data-event="${key}"]`);
+  const data = ACTIVITY_DETAILS[key] || (row ? defaultDetail(key, row) : null);
+  if (!data) return;
+  if (row) window._lastDetailRow = row;
+  document.getElementById('ad-eyebrow').innerHTML = data.eyebrow.replace('·', '<span class="sep">·</span>');
+  document.getElementById('ad-title').textContent = data.title;
+  document.getElementById('ad-body').innerHTML = data.body;
+
+  // Run information card
+  const m = data.meta;
+  document.getElementById('ad-meta-card').innerHTML = `
+    <div class="ad-meta-label">Run information</div>
+    <div class="ad-meta-row"><span class="k">Status</span><span class="v ${m.status.includes('Complete') ? 'green' : ''}">${m.status}</span></div>
+    <div class="ad-meta-row"><span class="k">Trigger</span><span class="v">${m.trigger}</span></div>
+    <div class="ad-meta-row"><span class="k">Source</span><span class="v">${m.source}</span></div>
+    <div class="ad-meta-row"><span class="k">Workflow</span><span class="v">${m.workflow}</span></div>
+    <div class="ad-meta-row"><span class="k">Confidence</span><span class="v">${m.confidence}</span></div>
+    <div class="ad-meta-row"><span class="k">Session ID</span><span class="v"><code>${m.session}</code></span></div>
+  `;
+
+  // Related card
+  const relatedCard = document.getElementById('ad-related-card');
+  if (data.related && data.related.length > 0) {
+    relatedCard.innerHTML = `
+      <div class="ad-meta-label">Related</div>
+      ${data.related.map(r => `<div class="ad-related-row"><span class="when">${r.when}</span><span>${r.text}</span></div>`).join('')}
+    `;
+    relatedCard.style.display = '';
+  } else {
+    relatedCard.style.display = 'none';
+  }
+
+  document.getElementById('activity-main').classList.add('detail-open');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function closeDetail() {
+  document.getElementById('activity-main').classList.remove('detail-open');
+  if (window.location.hash) history.replaceState(null, '', window.location.pathname);
+  // Restore scroll position to the row that was opened
+  if (window._lastDetailRow) {
+    setTimeout(() => {
+      window._lastDetailRow.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      window._lastDetailRow = null;
+    }, 50);
+  }
+}
+
+// Open detail from URL hash on page load
+window.addEventListener('load', () => {
+  const hash = window.location.hash.slice(1);
+  if (hash) openDetail(hash);
+});
+
+function toggleIntake(el) {
+  el.classList.toggle('playing');
+}
+
+function openSearch() {
+  document.getElementById('search-modal').classList.add('open');
+  setTimeout(() => document.getElementById('search-modal-input').focus(), 80);
+}
+function closeSearch() {
+  document.getElementById('search-modal').classList.remove('open');
+}
+
+function selectPatient(el) {
+  document.querySelectorAll('.pat-row').forEach(r => r.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function openPanel(tplId) {
+  const tplName = tplId === 'panel-activity' ? 'tpl-activity' : 'tpl-commit';
+  const tpl = document.getElementById(tplName);
+  sideInner.innerHTML = '';
+  sideInner.appendChild(tpl.content.cloneNode(true));
+  // Inject link arrow on every side-item that doesn't already have one
+  sideInner.querySelectorAll('.side-item').forEach(item => {
+    if (item.querySelector('.side-item-link')) return;
+    const link = document.createElement('span');
+    link.className = 'side-item-link';
+    link.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>';
+    item.appendChild(link);
+  });
+  app.classList.add('panel-open');
+}
+function closePanel() {
+  app.classList.remove('panel-open');
+}
+
+/* ─── Chat ─── */
+const CHIP_POOL = [
+  { label: 'What changed this quarter', q: 'What changed this quarter?',
+    a: 'Jamie ended Q1 at +11.4% YTD, ahead of benchmark by 3.6 points. Savings restart deferred again at the Feb 8 call. Rebalance stalled 45 days. Three email forwards to Adaeze in six weeks — the pattern escalated on Mar 2.' },
+  { label: 'Draft a message to Jamie', q: 'Draft a message to Jamie.',
+    a: '"Jamie — Q1 is in. You\'re up 11.4%, ahead of the benchmark by 3.6 points. Before we meet, I\'d like to put one number on the table with you and Adaeze: the savings restart. Same one we\'ve talked through twice. — Elena"' },
+  { label: 'Show the Feb 8 call notes', q: 'Show the Feb 8 call notes.',
+    a: 'Feb 8 call: pulled $40K in gains forward against advice, Q4 dip spooked him. Tone shifted at minute 12 when Q4 was raised — emotional, not strategic. Savings restart deferred "after taxes." Adaeze not on the call.' },
+  { label: 'Compare to the 2023 pattern', q: 'How does this compare to the 2023 pattern?',
+    a: 'Same shape. 2023: strong Q2 → nod on savings restart → deferred through year-end → Adaeze finally on the Q4 call forced the number. He responds to specificity in a live channel with Adaeze present. He does not respond to text asks about money.' },
+  { label: 'What I\'d say first', q: 'What should I open the call with?',
+    a: 'Lead with the win: "Q1 closed at +11.4%. Ahead of benchmark by 3.6." Let it land, then one beat of silence. Then: "I want to use the credit of a strong quarter to put the savings restart on screen today." Don\'t open with the rebalance.' },
+  { label: 'Adaeze angle', q: 'How do I bring up getting Adaeze on the next call?',
+    a: 'Don\'t ask "would your partner want to join?" Try: "The private school decision belongs to both of you. Put her on the Apr 14 call — I want to hear her questions directly." Three forwards in six weeks is the data; she\'s already involved.' },
+  { label: 'Hold or redo the rebalance', q: 'Should I restart the rebalance?',
+    a: 'Raise it, don\'t redo it. The drift is real (international -6pts below band) but not urgent. Surface it as a planned April execution, not an overdue item. The savings restart is the bigger fight this quarter and you can\'t push both.' },
+  { label: 'Email signals', q: 'What do the email opens tell us?',
+    a: '529 contribution email: 4 opens in Jan, zero clicks. Q1 summary: 2 opens in 48 hours, no reply. Jamie opens and reads but doesn\'t act over text. The signal is "thinking about it, not ignoring it." The lever is live channel + specificity + Adaeze.' },
+  { label: 'Family context', q: 'What\'s going on with his family?',
+    a: 'Wife Adaeze — three email forwards in six weeks, not on the last two calls. Kids: Theo 17, Maya 15. Private school decision landing Apr-May per the December conversation. 529 window open and untouched. The school decision is doing the work of "after taxes."' },
+  { label: 'Portfolio trend', q: 'Show me the portfolio trend.',
+    a: 'YTD: +4.8% (Jan) → +9.8% (Feb) → +10.4% (Mar 1) → +11.4% (Q1 close). Benchmark: +7.8% Q1. Tech overweight +4.2pt contribution, international underweight cost ~0.4pt. The rebalance call in December is what drove the outperformance.' },
+  { label: 'Call length', q: 'How long should this call be?',
+    a: '30 minutes. Open with Q1 (4 min), name the savings pattern and put the number on screen (12 min), get the restart date before he leaves (8 min), close with the rebalance planned for April (6 min). Don\'t schedule the 529 today.' },
+  { label: 'Risk flags', q: 'Any red flags I should ask about?',
+    a: 'Three. Savings restart stalled three quarters running — the "yes in room, no after" pattern is hardening. Adaeze involvement signal escalated from soft to hard. Rebalance in second-stall territory. The pattern is real, the Adaeze absence is the variable to watch.' },
+];
+const VISIBLE_CHIPS = 3;
+let usedChipKeys = new Set();
+let visibleChipIdxs = pickChips();
+
+function pickChips() {
+  const avail = CHIP_POOL.map((_,i) => i).filter(i => !usedChipKeys.has(i));
+  const picks = [];
+  while (picks.length < VISIBLE_CHIPS && avail.length) {
+    picks.push(avail.splice(Math.floor(Math.random()*avail.length), 1)[0]);
+  }
+  if (picks.length < VISIBLE_CHIPS) {
+    usedChipKeys = new Set();
+    return pickChips();
+  }
+  return picks;
+}
+
+function renderChips() {
+  const el = document.getElementById('chat-chips');
+  el.innerHTML = '';
+  visibleChipIdxs.forEach((poolIdx, slot) => {
+    const chip = CHIP_POOL[poolIdx];
+    const btn = document.createElement('button');
+    btn.className = 'cv-chat-chip';
+    btn.textContent = chip.label;
+    btn.onclick = () => rotateChip(slot);
+    el.appendChild(btn);
+  });
+}
+
+function rotateChip(slot) {
+  const poolIdx = visibleChipIdxs[slot];
+  const chip = CHIP_POOL[poolIdx];
+  ask(chip.q, chip.a);
+  usedChipKeys.add(poolIdx);
+  const exclude = new Set([...usedChipKeys, ...visibleChipIdxs]);
+  const avail = CHIP_POOL.map((_,i) => i).filter(i => !exclude.has(i));
+  if (avail.length === 0) {
+    usedChipKeys = new Set(visibleChipIdxs);
+    visibleChipIdxs = pickChips();
+  } else {
+    visibleChipIdxs[slot] = avail[Math.floor(Math.random()*avail.length)];
+  }
+  renderChips();
+}
+
+const KEYWORDS = [
+  { rx: /\b(ytd|return|perf|q1|number|benchmark)\b/i, a: 'Q1 closed at +11.4% YTD, +3.6 points above benchmark. Driven by the January rebalance that Jamie authorized in December. Strong quarter is the credit to spend on the savings restart.' },
+  { rx: /\b(saving|restart|defer)/i, a: 'Savings restart: nodded in December, reconfirmed in January, deferred in February ("after taxes"). Third-quarter stall. Pattern: yes in the live call, no in the week after. Lever is specificity (14% → 6% → target 12%) with Adaeze present.' },
+  { rx: /\b(rebalanc|allocation|drift|band)/i, a: 'January rebalance executed on time, then second-stall territory since. International allocation 6 pts below target band. Not urgent, but compounding. Recommend raising as planned April execution, not overdue item.' },
+  { rx: /\b(adaeze|wife|spouse|partner)/i, a: 'Three email forwards in six weeks, all within 90 seconds of Jamie opening. She\'s reading every financial thread without being cc\'d. Soft invites to join calls have been dropped twice. Recommend direct ask by name for the next live call.' },
+  { rx: /\b(529|school|kid|theo|maya|college|education)/i, a: 'Kids: Theo 17, Maya 15. 529 contribution email opened four times in January, zero clicks. Private school decision landing April-May. The school decision is doing the work of "after taxes" — it\'s why the savings ask keeps getting deferred.' },
+  { rx: /\b(call|meeting|prep|agenda)/i, a: 'Next live call Apr 14. 30 min recommended. Open with Q1 (4m), savings pattern + number on screen (12m), get restart date before he leaves (8m), rebalance planned for April (6m). Don\'t schedule 529 today.' },
+];
+
+function appendBubble(text, who) {
+  const scroll = document.getElementById('chat-scroll');
+  const div = document.createElement('div');
+  div.className = 'cv-chat-bubble ' + who;
+  div.textContent = text;
+  scroll.appendChild(div);
+  scroll.scrollTop = scroll.scrollHeight;
+}
+function ask(q, a) {
+  appendBubble(q, 'user');
+  setTimeout(() => appendBubble(a, 'assistant'), 380);
+}
+function sendInput(e) {
+  e.preventDefault();
+  const input = document.getElementById('chat-input');
+  const t = input.value.trim();
+  if (!t) return;
+  input.value = '';
+  let reply = "Not sure — try returns, savings, rebalance, Adaeze, the 529, or the call.";
+  for (const k of KEYWORDS) { if (k.rx.test(t)) { reply = k.a; break; } }
+  ask(t, reply);
+}
+function collapseChat() {
+  const panel = document.getElementById('chat-panel');
+  if (panel.classList.contains('collapsed')) return;
+  // Lock current height as inline style so transition has a starting point
+  panel.style.height = panel.offsetHeight + 'px';
+  panel.offsetHeight; // reflow
+  panel.classList.add('collapsed');
+  panel.style.height = ''; // CSS .collapsed sets height: 52px
+}
+function expandChat() {
+  const panel = document.getElementById('chat-panel');
+  if (!panel.classList.contains('collapsed')) return;
+  // Temporarily remove class to measure natural height
+  panel.classList.remove('collapsed');
+  panel.style.transition = 'none';
+  panel.style.height = 'auto';
+  panel.style.width = '';
+  const targetH = panel.offsetHeight;
+  // Snap back to collapsed dims
+  panel.style.height = '52px';
+  panel.classList.add('collapsed');
+  panel.offsetHeight; // reflow
+  panel.style.transition = '';
+  // Now expand to target
+  panel.classList.remove('collapsed');
+  panel.style.height = targetH + 'px';
+  setTimeout(() => {
+    panel.style.height = '';
+    document.getElementById('chat-input').focus();
+  }, 550);
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const sm = document.getElementById('search-modal');
+    if (sm.classList.contains('open')) { closeSearch(); return; }
+    const main = document.getElementById('activity-main');
+    if (main && main.classList.contains('detail-open')) { closeDetail(); return; }
+    if (app.classList.contains('panel-open')) closePanel();
+    else collapseChat();
+  }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    openSearch();
+  }
+});
+
+renderChips();
+</script>
+
+</body>
+</html>

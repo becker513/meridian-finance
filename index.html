@@ -1,0 +1,2362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>Jamie Hart — Client Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #EFF1F4;
+    --white: #FFFFFF;
+    --side-bg: #EFF1F4;
+    --surface-1: #FFFFFF;
+    --surface-1-inset: #F7F8FA;
+    --shadow-card: 0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
+    --shadow-card-hover: 0 2px 4px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.06);
+    --shadow-inset: inset 0 1px 2px rgba(0,0,0,0.03);
+    --card-border: rgba(0,0,0,0.06);
+    --border: rgba(0,0,0,0.08);
+    --border-strong: rgba(0,0,0,0.12);
+    --text-primary: #1A1C1F;
+    --text-secondary: #555555;
+    --text-tertiary: #888888;
+    --muted: #888;
+    /* Finance palette — punchy hue progression: blue → purple → raspberry
+       Three saturated stops, ~55° apart on the wheel.
+       Brand + positive collapse to blue (the agent's voice).
+       Caution sits at violet (mid-progression).
+       Negative pops at raspberry (warm urgency, not stoplight red). */
+    --amber: #1D4ED8;        /* brand pop — saturated blue 220° */
+    --amber-bg: rgba(29,78,216,0.08);
+    --amber-border: rgba(29,78,216,0.30);
+    --green: #1D4ED8;        /* positive — same blue, agent voice */
+    --green-bg: rgba(29,78,216,0.10);
+    --green-border: rgba(29,78,216,0.32);
+    --red: #DB2777;          /* negative — raspberry 330° */
+    --red-bg: rgba(219,39,119,0.10);
+    --red-border: rgba(219,39,119,0.30);
+    --blue: #1D4ED8;         /* alias of brand */
+    --blue-bg: rgba(29,78,216,0.08);
+    --blue-border: rgba(29,78,216,0.28);
+    --yellow: #7C3AED;       /* caution — violet 262° (mid-progression) */
+    --yellow-bg: rgba(124,58,237,0.10);
+    --yellow-border: rgba(124,58,237,0.30);
+    --serif: 'Instrument Sans', -apple-system, 'SF Pro Text', sans-serif;
+    --sans: 'Instrument Sans', -apple-system, 'SF Pro Text', sans-serif;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+    --base: 4px;
+  }
+  body { line-height: 20px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes rise-large {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes slide-right {
+    from { opacity: 0; transform: translateX(14px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  html, body { background: #fff; }
+  body {
+    font-family: var(--sans);
+    color: var(--text-primary);
+    min-height: 100vh;
+  }
+
+  .app { display: flex; width: 100%; min-height: 100vh; }
+
+  .sidebar {
+    width: 76px;
+    flex-shrink: 0;
+    background: var(--side-bg);
+    border-right: 1px solid rgba(0,0,0,0.05);
+    padding: 16px 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-self: stretch;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    z-index: 60;
+    transition: width 0.45s var(--ease-spring), padding 0.4s var(--ease-spring);
+  }
+  .sidebar.expanded { width: 272px; padding: 16px 14px 16px; }
+
+  .sidebar .ws,
+  .sidebar .search,
+  .sidebar .nav-item,
+  .sidebar .pat-row,
+  .sidebar .me {
+    display: flex;
+    align-items: center;
+    height: 44px;
+    padding: 0 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: var(--sans);
+    color: #444;
+    background: none;
+    border: none;
+    text-align: left;
+    width: 100%;
+    box-sizing: border-box;
+    transition: background 0.18s var(--ease-out);
+    overflow: hidden;
+  }
+  .sidebar:not(.expanded) .ws,
+  .sidebar:not(.expanded) .search,
+  .sidebar:not(.expanded) .nav-item,
+  .sidebar:not(.expanded) .pat-row,
+  .sidebar:not(.expanded) .me { justify-content: center; padding: 0; }
+
+  .sidebar .nav-item:hover,
+  .sidebar .pat-row:hover,
+  .sidebar .search:hover,
+  .sidebar .me:hover { background: rgba(0,0,0,0.05); }
+  .sidebar .nav-item.active { background: rgba(29,78,216,0.10); color: var(--amber); }
+  .sidebar .pat-row.active { background: rgba(0,0,0,0.07); }
+
+  .ws { margin-bottom: 6px; }
+  .sidebar .ws:hover { background: rgba(0,0,0,0.05); }
+  .ws-mark {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: var(--amber);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 400;
+    flex-shrink: 0;
+  }
+  .ws-name {
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--amber);
+    margin-left: 12px;
+    white-space: nowrap;
+    flex: 1;
+    opacity: 0;
+    transition: opacity 0.2s var(--ease-out);
+  }
+  .sidebar.expanded .ws-name { opacity: 1; transition-delay: 0.15s; }
+  .sidebar:not(.expanded) .ws-name { display: none; }
+
+  .collapse-btn {
+    width: 32px; height: 32px;
+    border: none; background: none;
+    color: #888;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    flex-shrink: 0;
+    transition: opacity 0.2s var(--ease-out), background 0.18s, color 0.18s;
+  }
+  .collapse-btn svg { width: 16px; height: 16px; }
+  .collapse-btn:hover { background: rgba(0,0,0,0.06); color: #000; }
+  .sidebar:not(.expanded) .collapse-btn { display: none; }
+  .sidebar:not(.expanded) .ws:hover .ws-mark { display: none; }
+  .sidebar:not(.expanded) .ws:hover .collapse-btn { display: flex; }
+
+  .search { margin-bottom: 6px; }
+  .search svg { width: 20px; height: 20px; color: #666; flex-shrink: 0; }
+  .search-input {
+    border: none; background: none; outline: none;
+    font-family: var(--sans);
+    font-size: 14px;
+    color: #888;
+    margin-left: 12px;
+    flex: 1; min-width: 0;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+  }
+  .sidebar.expanded .search { background: rgba(0,0,0,0.05); }
+  .sidebar.expanded .search-input { opacity: 1; pointer-events: auto; transition-delay: 0.15s; }
+  .sidebar:not(.expanded) .search-input { display: none; }
+
+  .nav-section { display: flex; flex-direction: column; gap: 2px; }
+  .nav-item svg { width: 20px; height: 20px; color: #666; flex-shrink: 0; }
+  .nav-item.active svg { color: var(--amber); }
+  .nav-label {
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+    color: #444;
+    margin-left: 14px;
+    white-space: nowrap;
+    flex: 1;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .sidebar.expanded .nav-label { opacity: 1; transition-delay: 0.15s; }
+  .sidebar:not(.expanded) .nav-label { display: none; }
+  .nav-item.active .nav-label { color: var(--amber); font-weight: 600; }
+
+  .pat-section { display: none; flex-direction: column; gap: 2px; }
+  .sidebar.expanded .pat-section { display: flex; }
+
+  .nav-divider { height: 1px; background: rgba(0,0,0,0.08); margin: 14px -14px; }
+  .section-label {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-tertiary);
+    padding: 0 12px 6px;
+  }
+
+  .pat-avatar {
+    width: 32px; height: 32px;
+    border-radius: 9px;
+    background: rgba(0,0,0,0.08);
+    color: rgba(0,0,0,0.55);
+    font-family: var(--serif);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .pat-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .pat-row.active .pat-avatar { background: var(--amber); color: #fff; }
+  .pat-name {
+    flex: 1;
+    margin-left: 12px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pat-row.active .pat-name { color: #000; font-weight: 600; }
+  .pat-meta {
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+  }
+
+  .me-divider {
+    height: 1px;
+    background: rgba(0,0,0,0.08);
+    margin: 0 -12px 12px;
+    margin-top: auto;
+  }
+  .sidebar.expanded .me-divider { margin: 0 -14px 12px; margin-top: auto; }
+  .me .pat-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--amber);
+    color: #fff;
+  }
+  .me .pat-avatar img { border-radius: 50%; }
+  .me-name {
+    flex: 1;
+    margin-left: 12px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
+    white-space: nowrap;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .sidebar.expanded .me-name { opacity: 1; transition-delay: 0.15s; }
+  .sidebar:not(.expanded) .me-name { display: none; }
+  .sidebar.expanded .me:hover {
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+  }
+  .sidebar.expanded .me:hover .me-logout { opacity: 1; color: #000; }
+  .me-logout {
+    width: 32px; height: 32px;
+    border: none; background: none;
+    color: #888;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    flex-shrink: 0;
+    transition: background 0.18s, color 0.18s, opacity 0.2s;
+  }
+  .sidebar.expanded .me-logout { display: flex; opacity: 0; }
+  .sidebar.expanded .me:hover .me-logout { opacity: 1; }
+  .me-logout:hover { background: rgba(0,0,0,0.06); color: #000; }
+  .me-logout svg { width: 16px; height: 16px; }
+
+  .sidebar [data-tip] { position: relative; }
+  .sidebar [data-tip]::after {
+    content: attr(data-tip);
+    position: absolute;
+    left: calc(100% + 16px);
+    top: 50%;
+    transform: translateY(-50%) translateX(-4px);
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--sans);
+    padding: 6px 10px;
+    border-radius: 7px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s var(--ease-out), transform 0.22s var(--ease-spring);
+    z-index: 200;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.14);
+  }
+  .sidebar [data-tip]:hover::after { opacity: 1; transform: translateY(-50%) translateX(0); }
+  .sidebar.expanded [data-tip]::after { display: none; }
+
+  .main {
+    flex: 1;
+    background: #fff;
+    padding: 56px 56px 220px;
+    min-width: 0;
+    transition: padding 0.5s var(--ease-spring);
+    position: relative;
+    display: flex;
+    justify-content: center;
+  }
+  .main-inner { width: 100%; max-width: 960px; }
+
+  .topbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 32px;
+    margin-bottom: 36px;
+    animation: rise 0.5s var(--ease-out) both;
+  }
+
+  .header-text { min-width: 0; flex: 1; }
+  .patient-name {
+    font-family: var(--serif);
+    font-size: 56px;
+    line-height: 60px;
+    letter-spacing: -1.2px;
+    font-weight: 400;
+  }
+  .header-meta {
+    margin-top: 14px;
+    font-size: 14px;
+    line-height: 20px;
+    color: #555;
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .header-meta .sep { color: rgba(0,0,0,0.22); }
+  .intake-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--amber);
+    cursor: pointer;
+    font-weight: 400;
+    text-decoration: none;
+    padding: 4px 12px;
+    margin: -4px -12px;
+    border-radius: 999px;
+    background: transparent;
+    transition: background 0.2s var(--ease-out);
+  }
+  .intake-link:hover { background: var(--amber-bg); }
+  .intake-icon, .intake-wave, .intake-pause {
+    width: 16px; height: 16px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .intake-icon svg, .intake-pause svg { width: 13px; height: 13px; }
+  .intake-link .intake-icon { display: inline-flex; }
+  .intake-link.playing .intake-icon { display: none; }
+  .intake-link.playing .intake-wave { display: inline-flex; gap: 2px; }
+  .intake-link.playing:hover .intake-wave { display: none; }
+  .intake-link.playing:hover .intake-pause { display: inline-flex; }
+  .intake-wave span {
+    display: block;
+    width: 2px;
+    height: 100%;
+    background: currentColor;
+    border-radius: 1px;
+    transform-origin: center;
+    animation: wave 1s ease-in-out infinite;
+  }
+  .intake-wave span:nth-child(1) { animation-delay: 0s;    transform: scaleY(0.4); }
+  .intake-wave span:nth-child(2) { animation-delay: 0.15s; transform: scaleY(0.8); }
+  .intake-wave span:nth-child(3) { animation-delay: 0.3s;  transform: scaleY(0.5); }
+  .intake-wave span:nth-child(4) { animation-delay: 0.45s; transform: scaleY(1);   }
+  .intake-wave span:nth-child(5) { animation-delay: 0.6s;  transform: scaleY(0.6); }
+  @keyframes wave {
+    0%, 100% { transform: scaleY(0.3); }
+    50%      { transform: scaleY(1); }
+  }
+
+  .cta-primary {
+    flex-shrink: 0;
+    height: 60px;
+    padding: 6px 24px 6px 6px;
+    border-radius: 18px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.10);
+    color: #000;
+    font-family: var(--sans);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    gap: 16px;
+    transition:
+      background 0.2s var(--ease-out),
+      border-color 0.2s var(--ease-out),
+      box-shadow 0.3s var(--ease-out);
+  }
+  .cta-primary:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+  .cta-primary .cta-photo {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--amber);
+    color: #fff;
+    font-family: var(--sans);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .cta-primary .cta-photo img { width: 100%; height: 100%; object-fit: cover; }
+  .cta-stack {
+    position: relative;
+    height: 38px;
+    min-width: 124px;
+    overflow: hidden;
+  }
+  .cta-default, .cta-hover {
+    position: absolute; inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: transform 0.4s var(--ease-spring);
+  }
+  .cta-default { transform: translateY(0); }
+  .cta-hover {
+    transform: translateY(100%);
+    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+  }
+  .cta-primary:hover .cta-default { transform: translateY(-100%); }
+  .cta-primary:hover .cta-hover { transform: translateY(0); }
+  .cta-line {
+    font-size: 14px;
+    line-height: 18px;
+    color: #1a1a1a;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .cta-line strong { font-weight: 700; color: #000; }
+  .cta-hover-text {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+    color: var(--amber);
+  }
+  .cta-hover-arrow { width: 18px; height: 18px; color: var(--amber); }
+  .cta-primary:active { transform: scale(0.99); }
+
+  .briefing-card {
+    background: #fff;
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    padding: 56px 48px 60px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-card);
+    animation: rise-large 0.55s var(--ease-out) 0.08s both;
+  }
+  .stat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: #FCFCFC;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 22px;
+    padding: 22px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .stat-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    margin-bottom: 14px;
+    letter-spacing: -0.05px;
+  }
+  .stat-label.watch { color: var(--amber); }
+  .stat-row-bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .stat-value {
+    font-family: var(--serif);
+    font-size: 44px;
+    line-height: 1;
+    letter-spacing: -1.2px;
+    font-weight: 400;
+    color: #000;
+  }
+  .stat-value .arrow {
+    font-family: var(--sans);
+    font-size: 0.62em;
+    font-weight: 300;
+    color: #000;
+    margin: 0 0.16em;
+    vertical-align: 0.32em;
+    position: relative;
+    top: 3px;
+    display: inline-block;
+  }
+  .stat-value sup {
+    font-size: 14px;
+    line-height: 1;
+    vertical-align: top;
+    position: relative;
+    top: calc(0.08em + 5px);
+    margin-left: 1px;
+  }
+  .stat-delta {
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    letter-spacing: -0.1px;
+    color: var(--text-tertiary);
+  }
+  .stat-delta.up { color: #888; }
+  .stat-delta.down { color: var(--red); }
+
+  .briefing-eyebrow {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: #555;
+    margin-bottom: 14px;
+  }
+  .briefing-eyebrow .sep { margin: 0 8px; color: rgba(0,0,0,0.22); }
+  .briefing-title {
+    font-family: var(--serif);
+    font-size: 32px;
+    line-height: 38px;
+    letter-spacing: -0.5px;
+    margin-bottom: 32px;
+    font-weight: 400;
+  }
+  .visit-card {
+    background: #FCFCFC;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 24px;
+    padding: 28px 32px;
+  }
+  .visit-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--amber);
+    margin-bottom: 14px;
+    letter-spacing: -0.05px;
+  }
+  .visit-text {
+    font-size: 19px;
+    line-height: 28px;
+    color: #2a2a2a;
+    font-weight: 400;
+    letter-spacing: -0.2px;
+    max-width: 68ch;
+    text-wrap: pretty;
+  }
+
+  /* Portfolio drawer — refined editorial layout
+     One eyebrow treatment, hairline section dividers,
+     slim 8px composition bar with tabular allocation rows below,
+     thin micro-bars for cash history, inline on-track metric. */
+  .port-lead {
+    margin: 4px 16px 36px;
+    font-size: 17px;
+    line-height: 26px;
+    color: #2a2a2a;
+    font-weight: 400;
+    max-width: 56ch;
+    letter-spacing: -0.1px;
+  }
+  .port-section {
+    margin: 0 16px;
+    padding: 28px 0 32px;
+  }
+  .port-section + .port-section {
+    border-top: 1px solid rgba(0,0,0,0.08);
+  }
+  .port-section-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #888;
+    margin-bottom: 4px;
+    letter-spacing: -0.05px;
+  }
+  .port-section-sub {
+    font-size: 13px;
+    color: #aaa;
+    margin-bottom: 22px;
+    letter-spacing: -0.05px;
+    font-weight: 400;
+  }
+
+  /* Slim allocation bar */
+  .alloc-bar {
+    display: flex;
+    height: 8px;
+    border-radius: 2px;
+    overflow: hidden;
+    background: rgba(0,0,0,0.05);
+    margin-bottom: 22px;
+  }
+  .alloc-seg {
+    height: 100%;
+    position: relative;
+    z-index: 1;
+    transition: filter 0.18s var(--ease-out), transform 0.22s var(--ease-spring);
+    cursor: default;
+    transform-origin: center;
+  }
+  .alloc-seg.eq { background: #2c2c2c; }
+  .alloc-seg.fx { background: #b8b8b8; }
+  .alloc-seg.ca { background: var(--amber); }
+  .alloc-seg:hover {
+    filter: brightness(1.14);
+    z-index: 50;
+  }
+
+  /* Tabular allocation rows */
+  .alloc-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    margin-bottom: 22px;
+  }
+  .alloc-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: baseline;
+    gap: 16px;
+    font-size: 14px;
+    line-height: 18px;
+  }
+  .alloc-name {
+    color: #555;
+    font-weight: 400;
+  }
+  .alloc-val {
+    color: #1a1a1a;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .alloc-pct {
+    color: #999;
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+    min-width: 38px;
+    text-align: right;
+  }
+  .alloc-row--accent .alloc-name,
+  .alloc-row--accent .alloc-val {
+    color: var(--amber);
+    font-weight: 500;
+  }
+  .alloc-row--accent .alloc-pct {
+    color: var(--amber);
+  }
+
+  .alloc-note {
+    margin-top: 6px;
+    font-size: 13.5px;
+    line-height: 20px;
+    color: #777;
+    font-style: italic;
+    max-width: 56ch;
+  }
+
+  /* Thin cash history micro-bars */
+  .cash-history {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 56px;
+    margin-bottom: 10px;
+  }
+  .cb {
+    flex: 1;
+    background: rgba(0,0,0,0.09);
+    min-width: 0;
+    border-radius: 1px;
+    position: relative;
+    z-index: 1;
+    transition: background 0.3s var(--ease-out), filter 0.18s var(--ease-out);
+    cursor: default;
+  }
+  .cb--idle {
+    background: var(--amber);
+  }
+  .cb:hover {
+    filter: brightness(1.14);
+    z-index: 50;
+  }
+
+  /* Shared chart tooltip — used by .cb and .alloc-seg */
+  .cb::after,
+  .alloc-seg::after {
+    content: attr(data-label);
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    background: #1a1a1a;
+    color: #fff;
+    padding: 6px 11px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: -0.05px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s var(--ease-out), transform 0.22s var(--ease-out);
+    z-index: 20;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+  }
+  .cb:hover::after,
+  .alloc-seg:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .cash-history-axis {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #999;
+    font-weight: 400;
+    letter-spacing: -0.05px;
+  }
+
+  /* Inline on-track metric */
+  .port-score {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .port-score-num {
+    font-size: 26px;
+    font-weight: 500;
+    color: #1a1a1a;
+    letter-spacing: -0.6px;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .port-score-delta {
+    font-size: 13px;
+    color: var(--red);
+    font-weight: 500;
+    letter-spacing: -0.05px;
+  }
+
+  .visit-pullquote {
+    margin-top: 34px;
+    padding: 4px 0 4px 26px;
+    border-left: 2px solid var(--amber);
+    font-family: var(--serif);
+    font-size: 23px;
+    line-height: 33px;
+    font-style: italic;
+    font-weight: 400;
+    color: #1a1a1a;
+    letter-spacing: -0.25px;
+    max-width: 56ch;
+    text-wrap: pretty;
+  }
+  .visit-cohort {
+    margin-top: 16px;
+    padding-left: 28px;
+    font-size: 13.5px;
+    line-height: 20px;
+    color: #888;
+    font-style: italic;
+    max-width: 56ch;
+  }
+
+  .row-section {
+    margin-top: 36px;
+    animation: rise 0.5s var(--ease-out) 0.18s both;
+  }
+  .row-section-eyebrow {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: #555;
+    margin-bottom: 16px;
+    padding-left: 4px;
+  }
+  .row-list { display: flex; flex-direction: column; gap: 10px; }
+  .row-btn {
+    width: 100%;
+    background: #fff;
+    border: 1px solid var(--card-border);
+    padding: 22px 26px;
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    cursor: pointer;
+    text-align: left;
+    font-family: var(--sans);
+    border-radius: 18px;
+    box-shadow: var(--shadow-card);
+    transition: box-shadow 0.25s var(--ease-out), transform 0.25s var(--ease-out);
+  }
+  .row-btn:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-1px);
+  }
+  .row-btn:hover .row-arrow { transform: translateX(3px); color: #000; }
+  .row-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.10);
+    color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .row-icon svg { width: 20px; height: 20px; stroke-width: 1.75; }
+  .row-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  .row-title {
+    font-size: 19px;
+    line-height: 24px;
+    font-weight: 600;
+    color: #000;
+    letter-spacing: -0.3px;
+  }
+  .row-meta {
+    font-size: 15px;
+    line-height: 22px;
+    font-weight: 500;
+    color: #555;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .pill {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+  }
+  .pill .num { letter-spacing: 0; margin-right: 3px; }
+  .pill.green { background: rgba(0,0,0,0.05); color: var(--text-secondary); }
+  .pill.amber { background: rgba(0,0,0,0.05); color: var(--text-secondary); }
+  .pill.red   { background: var(--red-bg); color: var(--red); }
+  .pill.gray  { background: rgba(0,0,0,0.05); color: var(--text-secondary); }
+  .row-arrow {
+    font-size: 22px;
+    color: #999;
+    flex-shrink: 0;
+    margin-left: auto;
+    transition: transform 0.25s var(--ease-spring), color 0.18s;
+  }
+
+  .side-panel {
+    width: 0;
+    flex-shrink: 0;
+    background: #fff;
+    overflow: hidden;
+    transition: width 0.5s var(--ease-spring);
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    height: 100vh;
+  }
+  .app.panel-open .side-panel { width: 460px; border-left: 1px solid var(--card-border); }
+  .side-inner {
+    width: 460px;
+    padding: 116px 44px 220px;
+    height: 100vh;
+    overflow-y: auto;
+    scrollbar-width: none;
+    position: relative;
+  }
+  .side-inner::-webkit-scrollbar { display: none; }
+  .side-close {
+    position: absolute;
+    top: 32px; right: 32px;
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #888;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.18s, color 0.18s;
+  }
+  .side-close:hover { background: rgba(0,0,0,0.05); color: #000; }
+  .side-close svg { width: 18px; height: 18px; }
+
+  .side-eyebrow {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: #555;
+    margin-bottom: 14px;
+    padding-left: 16px;
+  }
+  .side-eyebrow .sep { margin: 0 8px; color: rgba(0,0,0,0.22); }
+  .side-title {
+    font-family: var(--serif);
+    font-size: 32px;
+    line-height: 40px;
+    letter-spacing: -0.4px;
+    margin-bottom: 32px;
+    padding-left: 16px;
+    font-weight: 400;
+  }
+  .side-deeplink {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: -20px 0 28px 16px;
+    padding: 8px 14px 8px 12px;
+    border-radius: 999px;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    color: #1a1a1a;
+    text-decoration: none;
+    background: rgba(0,0,0,0.04);
+    transition: background 0.18s var(--ease-out), gap 0.2s var(--ease-out);
+  }
+  .side-deeplink:hover { background: rgba(0,0,0,0.07); gap: 10px; }
+  .side-deeplink svg { width: 13px; height: 13px; }
+
+  .side-divider {
+    margin: 30px 16px 14px;
+    padding-top: 26px;
+    border-top: 1px solid rgba(0,0,0,0.08);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    letter-spacing: -0.05px;
+  }
+
+  .port-grid {
+    margin: 6px 16px 0;
+    border-top: 1px solid rgba(0,0,0,0.07);
+  }
+  .port-row {
+    display: grid;
+    grid-template-columns: 130px 78px 1fr 96px;
+    align-items: center;
+    column-gap: 18px;
+    padding: 20px 4px;
+    border-bottom: 1px solid rgba(0,0,0,0.07);
+  }
+  .port-row-label {
+    font-size: 14px;
+    color: #555;
+    font-weight: 500;
+    letter-spacing: -0.05px;
+  }
+  .port-row-value {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 400;
+    color: #000;
+    letter-spacing: -0.4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .port-row-bar {
+    height: 5px;
+    background: rgba(0,0,0,0.06);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .port-row-fill {
+    height: 100%;
+    background: #2a2a2a;
+    border-radius: 999px;
+  }
+  .port-row.warn .port-row-fill { background: var(--red); }
+  .port-row-trend {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    text-align: right;
+    color: #999;
+  }
+  .port-row.warn .port-row-trend { color: var(--red); }
+  .port-foot {
+    margin: 22px 16px 0;
+    font-size: 13px;
+    line-height: 19px;
+    color: #888;
+    font-style: italic;
+    max-width: 52ch;
+  }
+
+  .side-item.green .side-item-meta { color: var(--green); }
+  .side-item.amber .side-item-meta { color: var(--yellow); }
+  .side-item.red   .side-item-meta { color: var(--red); }
+  .side-item.emerald .side-item-meta { color: var(--amber); }
+
+  .side-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 18px 16px;
+    border-radius: 16px;
+    border: 1px solid transparent;
+    background: transparent;
+    box-shadow: 0 0 0 rgba(0,0,0,0);
+    transition:
+      background 0.25s var(--ease-out),
+      border-color 0.25s var(--ease-out),
+      box-shadow 0.3s var(--ease-out),
+      transform 0.25s var(--ease-out);
+    margin-bottom: 6px;
+    cursor: pointer;
+    position: relative;
+    text-decoration: none;
+    color: inherit;
+  }
+  .side-item:hover {
+    background: #fff;
+    border-color: rgba(0,0,0,0.06);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06);
+    transform: translateY(-1px);
+  }
+  .side-item-link {
+    position: absolute;
+    top: 18px; right: 16px;
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    color: #888;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: translate(-4px, 4px);
+    transition: opacity 0.2s var(--ease-out), transform 0.25s var(--ease-spring), background 0.18s, color 0.18s;
+    pointer-events: none;
+  }
+  .side-item-link svg { width: 16px; height: 16px; stroke-width: 2; }
+  .side-item:hover .side-item-link {
+    opacity: 1;
+    transform: translate(0, 0);
+    color: #000;
+  }
+  .side-item-icon {
+    width: 44px; height: 44px;
+    border-radius: 11px;
+    background: rgba(0,0,0,0.025);
+    border: 1px solid rgba(0,0,0,0.10);
+    color: #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .side-item-icon svg { width: 18px; height: 18px; stroke-width: 1.75; }
+  .side-item.green .side-item-icon {
+    background: var(--green-bg);
+    border-color: var(--green-border);
+    color: var(--green);
+  }
+  .side-item.amber .side-item-icon {
+    background: var(--yellow-bg);
+    border-color: var(--yellow-border);
+    color: var(--yellow);
+  }
+  .side-item.red .side-item-icon {
+    background: var(--red-bg);
+    border-color: var(--red-border);
+    color: var(--red);
+  }
+  .side-item.blue .side-item-icon {
+    background: var(--blue-bg);
+    border-color: var(--blue-border);
+    color: var(--blue);
+  }
+  .side-item.emerald .side-item-icon {
+    background: var(--amber-bg);
+    border-color: var(--amber-border);
+    color: var(--amber);
+  }
+  .side-item-body { flex: 1; min-width: 0; padding-top: 0; }
+  .side-item-meta {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    margin-bottom: 6px;
+    letter-spacing: -0.05px;
+  }
+  .side-item-title {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    line-height: 23px;
+    letter-spacing: -0.15px;
+    color: #111;
+  }
+  .side-item-text {
+    font-size: 15px;
+    line-height: 24px;
+    font-weight: 400;
+    color: #555;
+  }
+  .side-item-extra {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition:
+      max-height 0.42s var(--ease-out),
+      opacity 0.32s var(--ease-out),
+      margin-top 0.42s var(--ease-out);
+    font-size: 13.5px;
+    line-height: 21px;
+    font-weight: 400;
+    color: #777;
+    font-style: italic;
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0 solid rgba(0,0,0,0.06);
+  }
+  .side-item.expanded .side-item-extra {
+    max-height: 240px;
+    opacity: 1;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top-width: 1px;
+  }
+  .side-item.expanded {
+    background: #fff;
+    border-color: rgba(0,0,0,0.06);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06);
+  }
+
+  .side-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-tertiary);
+    margin: 0 0 16px;
+    padding-left: 16px;
+  }
+
+  .app.panel-open .side-eyebrow { animation: slide-right 0.4s var(--ease-out) 0.18s both; }
+  .app.panel-open .side-title { animation: slide-right 0.45s var(--ease-out) 0.22s both; }
+  .app.panel-open .side-deeplink { animation: slide-right 0.4s var(--ease-out) 0.24s both; }
+  .app.panel-open .side-section-label { animation: slide-right 0.4s var(--ease-out) 0.26s both; }
+  .app.panel-open .side-item { animation: slide-right 0.45s var(--ease-out) both; }
+  .app.panel-open .side-item:nth-child(4) { animation-delay: 0.30s; }
+  .app.panel-open .side-item:nth-child(5) { animation-delay: 0.34s; }
+  .app.panel-open .side-item:nth-child(6) { animation-delay: 0.38s; }
+  .app.panel-open .side-item:nth-child(7) { animation-delay: 0.42s; }
+  .app.panel-open .side-item:nth-child(8) { animation-delay: 0.46s; }
+  .app.panel-open .side-item:nth-child(9) { animation-delay: 0.50s; }
+  .app.panel-open .side-item:nth-child(10) { animation-delay: 0.54s; }
+  .app.panel-open .side-item:nth-child(11) { animation-delay: 0.58s; }
+
+  .search-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 14vh;
+    background: rgba(0,0,0,0.18);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    transition: opacity 0.2s var(--ease-out);
+  }
+  .search-modal.open { display: flex; opacity: 1; }
+  .search-modal-card {
+    width: 640px;
+    max-width: calc(100vw - 48px);
+    max-height: 70vh;
+    background: #fff;
+    border-radius: 22px;
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.18), 0 4px 14px rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: translateY(-12px) scale(0.98);
+    transition: transform 0.3s var(--ease-spring);
+  }
+  .search-modal.open .search-modal-card { transform: translateY(0) scale(1); }
+  .search-modal-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 22px 24px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .search-modal-top svg.search-glass { width: 18px; height: 18px; color: #888; flex-shrink: 0; }
+  .search-modal-input {
+    flex: 1;
+    border: none; outline: none; background: none;
+    font-family: var(--sans);
+    font-size: 18px;
+    color: #000;
+  }
+  .search-modal-input::placeholder { color: #aaa; }
+  .search-modal-close {
+    width: 28px; height: 28px;
+    border: none;
+    background: rgba(0,0,0,0.05);
+    border-radius: 8px;
+    color: #666;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .search-modal-close:hover { background: rgba(0,0,0,0.1); color: #000; }
+  .search-modal-close svg { width: 14px; height: 14px; }
+  .search-modal-list {
+    overflow-y: auto;
+    padding: 8px 12px 16px;
+    scrollbar-width: none;
+  }
+  .search-modal-list::-webkit-scrollbar { display: none; }
+  .search-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-tertiary);
+    padding: 16px 14px 8px;
+  }
+  .search-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.18s;
+  }
+  .search-row:hover { background: rgba(0,0,0,0.04); }
+  .search-row-icon {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    background: rgba(0,0,0,0.05);
+    color: #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    font-family: var(--serif);
+    font-size: 13px;
+  }
+  .search-row-icon img { width: 100%; height: 100%; object-fit: cover; }
+  .search-row-icon svg { width: 16px; height: 16px; }
+  .search-row-title {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    color: #000;
+  }
+  .search-row-meta {
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  .cv-chat {
+    position: fixed;
+    bottom: 0;
+    left: 80px;
+    right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+    padding: 0 16px 20px;
+    transition: left 0.45s var(--ease-spring), right 0.5s var(--ease-spring);
+    animation: rise-large 0.6s var(--ease-out) 0.4s both;
+  }
+  body:has(.sidebar.expanded) .cv-chat { left: 272px; }
+  body:has(.app.panel-open) .cv-chat { right: 460px; }
+  .cv-chat-panel {
+    pointer-events: auto;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+    width: min(820px, calc(100vw - 32px));
+    border-radius: 28px;
+    position: relative;
+    overflow: hidden;
+    transition:
+      width 0.5s var(--ease-spring),
+      height 0.5s var(--ease-spring),
+      border-radius 0.5s var(--ease-spring),
+      box-shadow 0.4s var(--ease-out),
+      transform 0.3s var(--ease-spring);
+    transform-origin: bottom center;
+  }
+  .cv-chat-panel.collapsed { border-radius: 22px; }
+  .cv-chat-content {
+    padding: 20px 22px 18px 26px;
+    transition: opacity 0.25s var(--ease-out), filter 0.25s var(--ease-out);
+  }
+  .cv-chat-collapsed-shell {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s var(--ease-out);
+  }
+  .cv-chat-panel.collapsed {
+    width: 260px;
+    height: 52px;
+    border-radius: 22px;
+    box-shadow: 0 2px 14px rgba(0,0,0,0.07);
+  }
+  .cv-chat-panel.collapsed:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+  }
+  .cv-chat-panel.collapsed .cv-chat-content {
+    opacity: 0;
+    filter: blur(4px);
+    pointer-events: none;
+  }
+  .cv-chat-panel.collapsed .cv-chat-collapsed-shell {
+    opacity: 1;
+    pointer-events: auto;
+    transition-delay: 0.18s;
+  }
+  .cv-chat-collapsed-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    height: 100%;
+    padding: 8px 8px 8px 24px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-family: var(--sans);
+    border-radius: 999px;
+    font-size: 15px;
+    color: #aaa;
+    font-weight: 400;
+  }
+  .cv-chat-collapsed-bar .ph {
+    flex: 1;
+    text-align: left;
+    color: #aaa;
+    transition: color 0.35s var(--ease-out);
+    position: relative;
+  }
+  .cv-chat-panel.collapsed:hover .cv-chat-collapsed-bar .ph {
+    color: #000;
+    animation: ph-shimmer 0.75s var(--ease-out) both;
+  }
+  @keyframes ph-shimmer {
+    0%   { color: #aaa; }
+    40%  { color: #cfcfcf; }
+    100% { color: #000; }
+  }
+  .cv-chat-collapsed-bar .send-mini {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--amber);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.25s var(--ease-spring);
+  }
+  .cv-chat-collapsed-bar .send-mini svg { width: 14px; height: 14px; }
+  .cv-chat-panel.collapsed:hover .send-mini { transform: scale(1.06); }
+  .cv-chat-scroll {
+    max-height: 192px;
+    overflow-y: auto;
+    margin-bottom: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    scrollbar-width: none;
+  }
+  .cv-chat-scroll::-webkit-scrollbar { display: none; }
+  .cv-chat-scroll:empty { display: none; }
+  .cv-chat-bubble {
+    font-size: 15px;
+    line-height: 1.5;
+    padding: 8px 12px;
+    border-radius: 10px;
+    max-width: 92%;
+    animation: rise 0.3s var(--ease-out) both;
+  }
+  .cv-chat-bubble.user {
+    align-self: flex-end;
+    background: rgba(0,0,0,0.05);
+    color: #000;
+  }
+  .cv-chat-bubble.assistant {
+    align-self: flex-start;
+    background: transparent;
+    color: #444;
+    border: 1px solid var(--border);
+  }
+  .cv-chat-input {
+    width: 100%;
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.4;
+    padding: 6px 0 14px;
+    border: none;
+    background: transparent;
+    color: #000;
+    outline: none;
+  }
+  .cv-chat-input::placeholder { color: #aaa; }
+  .cv-chat-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .cv-chat-icons { display: flex; align-items: center; gap: 14px; }
+  .cv-chat-icon {
+    width: 22px; height: 22px;
+    border: none; background: none;
+    color: #888;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s;
+  }
+  .cv-chat-icon:hover { color: #000; }
+  .cv-chat-icon svg { width: 20px; height: 20px; }
+  .cv-chat-send {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: var(--amber);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.25s var(--ease-spring);
+  }
+  .cv-chat-send:hover { transform: scale(1.06); }
+  .cv-chat-send:active { transform: scale(0.94); }
+  .cv-chat-send svg { width: 16px; height: 16px; }
+  .cv-chat-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .cv-chat-chip {
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 400;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.18s var(--ease-out);
+    animation: rise 0.3s var(--ease-out) both;
+  }
+  .cv-chat-chip:hover {
+    border-color: var(--amber-border);
+    color: var(--amber);
+    background: var(--amber-bg);
+  }
+  .cv-chat-chip:active { transform: scale(0.97); }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="ws">
+      <div class="ws-mark">M</div>
+      <div class="ws-name">Meridian</div>
+      <button class="collapse-btn" onclick="toggleSidebar()" aria-label="Collapse sidebar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+      </button>
+    </div>
+
+    <div class="search" data-tip="Search" onclick="openSearch()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="search-input" placeholder="Search" readonly onclick="openSearch()">
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-item active" data-tip="Today">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        <span class="nav-label">Today</span>
+      </div>
+      <div class="nav-item" data-tip="Clients">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="nav-label">Clients</span>
+      </div>
+      <div class="nav-item" data-tip="Activity">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span class="nav-label">Activity</span>
+      </div>
+      <div class="nav-item" data-tip="Inbox">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <span class="nav-label">Inbox</span>
+      </div>
+      <div class="nav-item" data-tip="Threads">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="nav-label">Threads</span>
+      </div>
+      <div class="nav-item" data-tip="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="nav-label">Settings</span>
+      </div>
+    </div>
+
+    <div class="pat-section">
+      <div class="nav-divider"></div>
+      <div class="section-label">Today's Panel</div>
+      <div class="pat-row active" onclick="selectPatient(this)">
+        <div class="pat-avatar">JH</div>
+        <span class="pat-name">Jamie Hart</span>
+        <span class="pat-meta">9:30</span>
+      </div>
+      <div class="pat-row" onclick="selectPatient(this)">
+        <div class="pat-avatar">PR</div>
+        <span class="pat-name">Priya Raman</span>
+        <span class="pat-meta">10:15</span>
+      </div>
+      <div class="pat-row" onclick="selectPatient(this)">
+        <div class="pat-avatar">HT</div>
+        <span class="pat-name">Henderson Trust</span>
+        <span class="pat-meta">11:00</span>
+      </div>
+      <div class="pat-row" onclick="selectPatient(this)">
+        <div class="pat-avatar">MW</div>
+        <span class="pat-name">Marcus Wei</span>
+        <span class="pat-meta">2:30</span>
+      </div>
+    </div>
+
+    <div class="me-divider"></div>
+    <div class="me" data-tip="Elena Vasquez, CFP">
+      <div class="pat-avatar">EV</div>
+      <span class="me-name">Elena Vasquez, CFP</span>
+      <button class="me-logout" aria-label="Log out" title="Log out" onclick="event.stopPropagation()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="main-inner">
+    <div class="topbar">
+      <div class="header-text">
+        <div class="patient-name">Jamie Hart</div>
+        <div class="header-meta">
+          <span>Next meeting May 4</span>
+          <span class="sep">·</span>
+          <a class="intake-link" id="intake-link" onclick="toggleIntake(this)">
+            <span class="intake-icon"><svg viewBox="0 0 14 14" fill="currentColor"><path d="M2 1 L13 7 L2 13 Z"/></svg></span>
+            <span class="intake-wave"><span></span><span></span><span></span><span></span><span></span></span>
+            <span class="intake-pause"><svg viewBox="0 0 14 14" fill="currentColor"><rect x="2" y="2" width="3" height="10" rx="0.5"/><rect x="9" y="2" width="3" height="10" rx="0.5"/></svg></span>
+            <span class="intake-label">Last call recording · Feb 8</span>
+          </a>
+        </div>
+      </div>
+      <button class="cta-primary">
+        <span class="cta-photo">JH</span>
+        <span class="cta-stack">
+          <span class="cta-default">
+            <span class="cta-line"><strong>$2.4M</strong> net worth</span>
+            <span class="cta-line">Client since 2022</span>
+          </span>
+          <span class="cta-hover">
+            <span class="cta-hover-text">Begin Meeting</span>
+            <svg class="cta-hover-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </span>
+        </span>
+      </button>
+    </div>
+
+    <div class="briefing-card">
+      <div class="briefing-eyebrow">Updated today</div>
+      <div class="briefing-title">Portfolio is up 11.4% YTD.<br>The plan isn't.</div>
+      <div class="stat-row">
+        <div class="stat-card">
+          <div class="stat-label">Portfolio YTD</div>
+          <div class="stat-row-bottom">
+            <div class="stat-value">+11.4<sup>%</sup></div>
+            <div class="stat-delta up">vs. benchmark +1.8%</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label watch">Cash Position</div>
+          <div class="stat-row-bottom">
+            <div class="stat-value">$340<sup>K</sup></div>
+            <div class="stat-delta down">idle since Q4 · −$13K opportunity</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label watch">Savings Rate</div>
+          <div class="stat-row-bottom">
+            <div class="stat-value">14<span class="arrow">→</span>6<sup>%</sup></div>
+            <div class="stat-delta down">↓ 8 pts since Oct</div>
+          </div>
+        </div>
+      </div>
+      <div class="visit-card">
+        <div class="visit-label">For May 4</div>
+        <div class="visit-text">
+          Jamie's returns are real, but the spring 2025 pattern is back — he nodded at the savings restart in December, January, and February, and hasn't moved on it. He's also forwarded your emails to Adaeze three times in six weeks without responding directly. She's the one making this call.
+        </div>
+        <div class="visit-pullquote">
+          Jamie — you're up 11.4% YTD, well ahead of the benchmark. Before anything else, let's put a date on the savings restart, with Adaeze on the line.
+        </div>
+      </div>
+    </div>
+
+    <div class="row-section">
+      <div class="row-section-eyebrow">Between meetings</div>
+      <div class="row-list">
+        <button class="row-btn" onclick="openPanel('panel-activity')">
+          <span class="row-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </span>
+          <span class="row-content">
+            <span class="row-title">Agent activity</span>
+            <span class="row-meta">
+              <span class="pill gray"><span class="num">7</span>events this period</span>
+            </span>
+          </span>
+          <span class="row-arrow">›</span>
+        </button>
+        <button class="row-btn" onclick="openPanel('panel-commit')">
+          <span class="row-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          </span>
+          <span class="row-content">
+            <span class="row-title">Commitments</span>
+            <span class="row-meta">
+              <span class="pill green"><span class="num">1</span>complete</span>
+              <span class="pill amber"><span class="num">2</span>on track</span>
+              <span class="pill red"><span class="num">2</span>stalled</span>
+            </span>
+          </span>
+          <span class="row-arrow">›</span>
+        </button>
+        <button class="row-btn" onclick="openPanel('panel-portfolio')">
+          <span class="row-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"><line x1="6" y1="20" x2="6" y2="14"/><line x1="12" y1="20" x2="12" y2="8"/><line x1="18" y1="20" x2="18" y2="4"/></svg>
+          </span>
+          <span class="row-content">
+            <span class="row-title">Portfolio</span>
+            <span class="row-meta">
+              <span class="pill gray"><span class="num">5</span>accounts reconciled today</span>
+            </span>
+          </span>
+          <span class="row-arrow">›</span>
+        </button>
+      </div>
+    </div>
+    </div>
+  </main>
+
+  <aside class="side-panel">
+    <div class="side-inner" id="side-inner"></div>
+  </aside>
+
+</div>
+
+<template id="tpl-activity">
+  <button class="side-close" onclick="closePanel()" aria-label="Close">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <div class="side-eyebrow">Past quarter · 12 weeks<span class="sep">·</span>7 events</div>
+  <div class="side-title">Agent activity</div>
+  <a class="side-deeplink" href="#">
+    Open full activity log
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+  </a>
+
+  <a href="activity.html#mar30-q1summary" class="side-item emerald">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Week 12 · Mar 30</div>
+      <div class="side-item-title">Sent the Q1 performance summary</div>
+      <div class="side-item-text">Personal note attached about the private school decision. He opened it twice, didn't reply.</div>
+      <div class="side-item-extra">Triggered by quarterly close. Tone calibrated against Jamie's December reply length and read-receipt latency.</div>
+    </div>
+  </a>
+
+  <a href="activity.html#mar23-passive" class="side-item amber">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Week 10 · Mar 16</div>
+      <div class="side-item-title">Shifted to passive monitoring</div>
+      <div class="side-item-text">Detected stress signals in Jamie's reply cadence — slower, shorter, no questions back. Reading the silence as market-anxiety, not disengagement. Did not push.</div>
+      <div class="side-item-extra">No outbound for 7 days. Resumed light prompts only after Jamie's Mar 30 reply restored baseline cadence.</div>
+    </div>
+  </a>
+
+  <a href="activity.html#mar16-forward" class="side-item amber">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="22" x2="4" y2="15"/><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Week 8 · Mar 2</div>
+      <div class="side-item-title">Flagged the third email forward to Adaeze</div>
+      <div class="side-item-text">Noted the pattern to Elena. Three forwards in six weeks; she's reading every thread without being on it.</div>
+      <div class="side-item-extra">Pattern threshold: 3 forwards in 6 weeks crosses the "spouse-as-decision-maker" signal in Elena's prep rules.</div>
+    </div>
+  </a>
+
+  <a href="activity.html#mar9-draft" class="side-item">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Week 6 · Feb 16</div>
+      <div class="side-item-title">Drafted savings restart language</div>
+      <div class="side-item-text">Held for the next live call. Specific numbers attached: 14% → 6% → target 12%. Awaiting Elena's approval.</div>
+      <div class="side-item-extra">Three drafts compared against Jamie's prior accepted phrasings. Held until live channel — text drafts of money asks have 0% follow-through with him.</div>
+    </div>
+  </a>
+
+  <a href="activity.html#mar2-529opens" class="side-item">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Week 4 · Feb 2</div>
+      <div class="side-item-title">Noticed Jamie opened the 529 contribution email four times</div>
+      <div class="side-item-text">Without clicking through. The kids are 17 and 15 — the timing is on his mind, the action isn't.</div>
+      <div class="side-item-extra">Each open under 30 seconds. Four opens, zero clicks reads as "thinking about it," not "ignoring it" — flagged warm but stuck.</div>
+    </div>
+  </a>
+
+  <a href="activity.html#feb23-stalled" class="side-item red">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Week 2 · Jan 19</div>
+      <div class="side-item-title">Auto-surfaced the January rebalance commitment</div>
+      <div class="side-item-text">As it approached 60 days stalled. Pushed to the top of Elena's prep view before the next live call.</div>
+      <div class="side-item-extra">Aging trigger: 60 days without progress. Promoted to the top of Elena's prep view, demoted other items by one slot.</div>
+    </div>
+  </a>
+
+  <a href="activity.html#feb16-celebrate" class="side-item green">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Week 1 · Jan 12</div>
+      <div class="side-item-title">Celebrated crossing +10% YTD</div>
+      <div class="side-item-text">Short note tied to Jamie's retirement target — framed as "two years closer than the December plan said."</div>
+      <div class="side-item-extra">First positive note in four weeks. Calibrated short — two sentences — to avoid contrast with the harder asks queued behind it.</div>
+    </div>
+  </a>
+
+  <div class="side-divider">Meeting history</div>
+
+  <a href="activity.html#feb8-q4dip" class="side-item">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Feb 8, 2026 · Quarterly call</div>
+      <div class="side-item-title">Pulled forward $40K in gains against advice</div>
+      <div class="side-item-text">Q4 dip spooked him. Savings restart deferred again — "after taxes." Adaeze not on the call.</div>
+      <div class="side-item-extra">Audio analysis: Jamie's tone shifted at minute 12 when the Q4 dip was raised. The decision was emotional, not strategic.</div>
+    </div>
+  </a>
+
+  <a href="#" class="side-item">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Nov 12, 2025 · Quarterly call</div>
+      <div class="side-item-title">Agreed to restart savings in December</div>
+      <div class="side-item-text">Reviewed full plan. Beneficiary update flagged for February. Adaeze referenced but not present.</div>
+      <div class="side-item-extra">Agent flagged the agreement as soft — Jamie used the word "try," which carries a 30% follow-through rate in his historical commitments.</div>
+    </div>
+  </a>
+
+  <a href="#" class="side-item">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Aug 4, 2025 · Mid-year touch base</div>
+      <div class="side-item-title">Light agenda, distracted</div>
+      <div class="side-item-text">First kid started college tour the week before. Tax-loss harvesting walk-through deferred to next call.</div>
+      <div class="side-item-extra">Agent re-prioritized the agenda mid-call after detecting reduced engagement. Tax-loss harvesting moved to the November call.</div>
+    </div>
+  </a>
+
+  <a href="#" class="side-item">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">May 1, 2025 · Quarterly call</div>
+      <div class="side-item-title">Same savings concern raised, same nod</div>
+      <div class="side-item-text">Strong portfolio quarter (+6%). Pattern noted in the prep file: nods, defers, finds an external reason.</div>
+      <div class="side-item-extra">First instance of the nods-then-defers pattern recorded. The agent began tracking it as a stable behavioral signal from this date.</div>
+    </div>
+  </a>
+
+  <a class="side-deeplink" href="#" style="margin: 16px 0 0 16px;">
+    Open full activity log
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+  </a>
+</template>
+
+<template id="tpl-commit">
+  <button class="side-close" onclick="closePanel()" aria-label="Close">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <div class="side-eyebrow">Set Dec 12, 2025<span class="sep">·</span>5 active</div>
+  <div class="side-title">Commitments</div>
+
+  <a href="#" class="side-item red">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Stalled</div>
+      <div class="side-item-title">Restart monthly savings contributions</div>
+      <div class="side-item-text">Jamie agreed in December, reconfirmed in January, deferred in February. The pattern is "yes in the room, no after." Suggest: put the number on screen during the call (14% → 6% → target 12%) and ask him to pick the restart date before he leaves. Don't let it float.</div>
+      <div class="side-item-extra">Three explicit agreements logged. Each at a smaller dollar number than the previous. The pattern: he negotiates the number down before he negotiates the date.</div>
+    </div>
+  </a>
+
+  <a href="#" class="side-item amber">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">On track</div>
+      <div class="side-item-title">Rebalance emergency fund to 6 months</div>
+      <div class="side-item-text">He moved $18k last week without being asked. First unprompted action in four months. Acknowledge it directly.</div>
+      <div class="side-item-extra">First unprompted action in four months. Agent stopped sending reminders two weeks ago — the autonomous behavior is the win.</div>
+    </div>
+  </a>
+
+  <a href="#" class="side-item green">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Complete</div>
+      <div class="side-item-title">Update beneficiaries after the new baby</div>
+      <div class="side-item-text">Done Feb 20. Adaeze drove it. Mention her by name when you confirm it on the call.</div>
+      <div class="side-item-extra">Initiated by Adaeze via the Mar 12 forwarded thread. Agent flagged complete and removed from active queue Feb 21.</div>
+    </div>
+  </a>
+
+  <a href="#" class="side-item red">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Stalled</div>
+      <div class="side-item-title">Joint financial planning session with Adaeze</div>
+      <div class="side-item-text">Asked in November, asked again in January. She's clearly involved — three forwards in six weeks — but hasn't been invited in. Suggest a warm handoff: offer a 30-min joint call, frame it as "I want to hear her questions too," and let Jamie pick the time.</div>
+      <div class="side-item-extra">Two soft asks made by the agent via email; both were forwarded to Adaeze without reply. The forward IS the data.</div>
+    </div>
+  </a>
+
+  <a href="#" class="side-item amber">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">On track</div>
+      <div class="side-item-title">Review tax-loss harvesting window</div>
+      <div class="side-item-text">On calendar for April 15. No action needed until then.</div>
+      <div class="side-item-extra">Calendar trigger set for Apr 14. No outbound until then — the calendar handles the timing, not the agent.</div>
+    </div>
+  </a>
+</template>
+
+<template id="tpl-portfolio">
+  <button class="side-close" onclick="closePanel()" aria-label="Close">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <div class="side-eyebrow">Across 5 accounts<span class="sep">·</span>Reconciled today</div>
+  <div class="side-title">Portfolio</div>
+
+  <div class="port-lead">Allocation is healthy. The cash slice is what's slipping.</div>
+
+  <div class="port-section">
+    <div class="port-section-label">Allocation</div>
+    <div class="port-section-sub">$2.4M across 5 accounts</div>
+
+    <div class="alloc-bar">
+      <div class="alloc-seg eq" style="width:62%" data-label="Equity · $1.49M · 62%"></div>
+      <div class="alloc-seg fx" style="width:24%" data-label="Fixed income · $576K · 24%"></div>
+      <div class="alloc-seg ca" style="width:14%" data-label="Cash · $340K · 14%"></div>
+    </div>
+
+    <div class="alloc-rows">
+      <div class="alloc-row">
+        <span class="alloc-name">Equity</span>
+        <span class="alloc-val">$1.49M</span>
+        <span class="alloc-pct">62%</span>
+      </div>
+      <div class="alloc-row">
+        <span class="alloc-name">Fixed income</span>
+        <span class="alloc-val">$576K</span>
+        <span class="alloc-pct">24%</span>
+      </div>
+      <div class="alloc-row alloc-row--accent">
+        <span class="alloc-name">Cash</span>
+        <span class="alloc-val">$340K</span>
+        <span class="alloc-pct">14%</span>
+      </div>
+    </div>
+
+    <div class="alloc-note">$290K of the cash slice has been idle since October — proceeds from the business sale, never deployed.</div>
+  </div>
+
+  <div class="port-section">
+    <div class="port-section-label">Cash position</div>
+    <div class="port-section-sub">12 months · plateaued at $340K since October</div>
+
+    <div class="cash-history">
+      <div class="cb" style="height:18%" data-label="May 2025 · $60K"></div>
+      <div class="cb" style="height:21%" data-label="Jun 2025 · $70K"></div>
+      <div class="cb" style="height:27%" data-label="Jul 2025 · $90K"></div>
+      <div class="cb" style="height:36%" data-label="Aug 2025 · $120K"></div>
+      <div class="cb" style="height:60%" data-label="Sep 2025 · $200K"></div>
+      <div class="cb cb--idle" style="height:100%" data-label="Oct 2025 · $340K · idle"></div>
+      <div class="cb cb--idle" style="height:100%" data-label="Nov 2025 · $340K · idle"></div>
+      <div class="cb cb--idle" style="height:100%" data-label="Dec 2025 · $340K · idle"></div>
+      <div class="cb cb--idle" style="height:100%" data-label="Jan 2026 · $340K · idle"></div>
+      <div class="cb cb--idle" style="height:100%" data-label="Feb 2026 · $340K · idle"></div>
+      <div class="cb cb--idle" style="height:100%" data-label="Mar 2026 · $340K · idle"></div>
+      <div class="cb cb--idle" style="height:100%" data-label="Apr 2026 · $340K · idle"></div>
+    </div>
+    <div class="cash-history-axis">
+      <span>May 2025</span>
+      <span>April 2026</span>
+    </div>
+  </div>
+
+  <div class="port-section">
+    <div class="port-section-label">On-track score</div>
+    <div class="port-section-sub">Agent's composite read against Jamie's 2028 plan</div>
+
+    <div class="port-score">
+      <span class="port-score-num">78%</span>
+      <span class="port-score-delta">↓ 6 pts since February</span>
+    </div>
+  </div>
+
+  <div class="port-foot">Allocation reconciled from Schwab and Fidelity overnight. The score weighs allocation drift, savings adherence, and rebalance hygiene.</div>
+</template>
+
+<div class="search-modal" id="search-modal" onclick="if(event.target===this)closeSearch()">
+  <div class="search-modal-card">
+    <div class="search-modal-top">
+      <svg class="search-glass" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="search-modal-input" id="search-modal-input" placeholder="Search clients, threads, notes…" autocomplete="off">
+      <button class="search-modal-close" onclick="closeSearch()" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="search-modal-list">
+      <div class="search-section-label">Today's panel</div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon">JH</div>
+        <div class="search-row-title">Jamie Hart</div>
+        <div class="search-row-meta">9:30 · Quarterly review</div>
+      </div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon">PR</div>
+        <div class="search-row-title">Priya Raman</div>
+        <div class="search-row-meta">10:15 · Quarterly review</div>
+      </div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon">HT</div>
+        <div class="search-row-title">The Henderson Trust</div>
+        <div class="search-row-meta">11:00 · Estate update</div>
+      </div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon">MW</div>
+        <div class="search-row-title">Marcus Wei</div>
+        <div class="search-row-meta">2:30 · New client onboarding</div>
+      </div>
+      <div class="search-section-label">Recent</div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon">JH</div>
+        <div class="search-row-title">Jamie Hart</div>
+      </div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon">PR</div>
+        <div class="search-row-title">Priya Raman</div>
+      </div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon">HT</div>
+        <div class="search-row-title">The Henderson Trust</div>
+      </div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon">KN</div>
+        <div class="search-row-title">Kai Nakamura</div>
+      </div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon">SB</div>
+        <div class="search-row-title">Sophie Bellot</div>
+      </div>
+      <div class="search-section-label">Actions</div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 19 12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+        <div class="search-row-title">Begin meeting with Jamie Hart</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="cv-chat" role="region" aria-label="Ask about Jamie">
+  <div class="cv-chat-panel collapsed" id="chat-panel">
+    <div class="cv-chat-content">
+      <div class="cv-chat-scroll" id="chat-scroll"></div>
+      <div class="cv-chat-presets" id="chat-chips"></div>
+      <form onsubmit="sendInput(event)">
+        <input id="chat-input" class="cv-chat-input" placeholder="Ask about Jamie…" autocomplete="off">
+        <div class="cv-chat-bottom">
+          <div class="cv-chat-icons">
+            <button type="button" class="cv-chat-icon" title="Mention" aria-label="Mention">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"/></svg>
+            </button>
+            <button type="button" class="cv-chat-icon" title="Attach" aria-label="Attach">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 17.99 8.8l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.49"/></svg>
+            </button>
+            <button type="button" class="cv-chat-icon" title="Voice" aria-label="Voice">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10a7 7 0 0 1-14 0"/><path d="M12 19v3"/></svg>
+            </button>
+          </div>
+          <button type="submit" class="cv-chat-send" aria-label="Send">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="20" y2="12"/><polyline points="13 5 20 12 13 19"/></svg>
+          </button>
+        </div>
+      </form>
+    </div>
+    <div class="cv-chat-collapsed-shell">
+      <button class="cv-chat-collapsed-bar" onclick="expandChat()" aria-label="Ask about Jamie">
+        <span class="ph">Ask about Jamie…</span>
+        <span class="send-mini">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="20" y2="12"/><polyline points="13 5 20 12 13 19"/></svg>
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+const app = document.getElementById('app');
+const sideInner = document.getElementById('side-inner');
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('expanded');
+}
+
+function toggleIntake(el) {
+  el.classList.toggle('playing');
+}
+
+function openSearch() {
+  document.getElementById('search-modal').classList.add('open');
+  setTimeout(() => document.getElementById('search-modal-input').focus(), 80);
+}
+function closeSearch() {
+  document.getElementById('search-modal').classList.remove('open');
+}
+
+function selectPatient(el) {
+  document.querySelectorAll('.pat-row').forEach(r => r.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function openPanel(tplId) {
+  const tplMap = {
+    'panel-activity': 'tpl-activity',
+    'panel-commit': 'tpl-commit',
+    'panel-portfolio': 'tpl-portfolio',
+  };
+  const tplName = tplMap[tplId] || 'tpl-activity';
+  const tpl = document.getElementById(tplName);
+  sideInner.innerHTML = '';
+  sideInner.appendChild(tpl.content.cloneNode(true));
+  sideInner.querySelectorAll('.side-item').forEach(item => {
+    if (item.querySelector('.side-item-link')) return;
+    const link = document.createElement('span');
+    link.className = 'side-item-link';
+    link.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>';
+    item.appendChild(link);
+  });
+  app.classList.add('panel-open');
+}
+function closePanel() {
+  app.classList.remove('panel-open');
+}
+
+/* ─── Chat ─── */
+const CHIP_POOL = [
+  { label: 'Savings restart history', q: 'Savings restart history?',
+    a: 'Jamie agreed to restart in December ($1,500/mo), January ($1,200/mo), and February ($1,000/mo). Each time the number got smaller. He\'s negotiating with himself, not with you. The December number is the honest one.' },
+  { label: 'Compare to last March', q: 'Compare to last March.',
+    a: 'Same shape. Last March: three deferred commitments → market wobble in April → Jamie used the wobble as a reason to "wait and see" → he didn\'t restart until July. Four months of lost contributions. The pattern is external event → permission to pause. If you don\'t name it now, he\'ll find a reason in the next earnings cycle.' },
+  { label: 'Is Adaeze the decision-maker?', q: 'Is Adaeze the decision-maker?',
+    a: 'On the big moves, yes. Beneficiary update (Feb) — she initiated. The 2023 refi — she was on the call. The 2024 college 529 bump — her idea. Jamie handles the day-to-day; Adaeze handles the decisions with consequences. The savings restart is a decisions-with-consequences call. She should be in the room.' },
+  { label: 'How\'d he do with the rebalance?', q: 'How\'d he do with the rebalance?',
+    a: 'Better than expected. Moved $18k into the emergency fund last Tuesday, unprompted. First self-initiated action in four months. Two reads: (1) the Q1 statement landed and scared him a little, which is useful; (2) he\'s showing you he can act when it matters. Use this as proof-of-capability when you bring up the savings restart.' },
+  { label: 'Draft a message to Jamie', q: 'Draft a message to Jamie.',
+    a: '"Jamie — quick one before May 4. The portfolio crossed +11% YTD this week, which is real. I want to use part of our meeting to put a date on the savings restart — even a small number, just a date. And I\'d love to have Adaeze on the call if that works. — Elena"' },
+  { label: 'Tax-loss harvesting window', q: 'Tax-loss harvesting window?',
+    a: 'On calendar April 15. Two lots in the taxable brokerage at unrealized losses worth ~$8,400 combined. Wash-sale window clear. No action needed before then.' },
+  { label: '529 contributions', q: '529 contributions?',
+    a: 'Funded through Q1 at the December cadence. The kids are 17 and 15 — the older one\'s account is short of full in-state tuition by about $22k. Jamie opened the contribution email four times in March without acting. It\'s on his mind.' },
+  { label: 'Allocation drift', q: 'Allocation drift?',
+    a: 'Equity sleeve drifted from 68% target to 72.4% on the rally. Not enough to force a rebalance, but worth naming. The drift is in his favor right now — that\'s why it feels fine. Mention it before April 15 so the harvest doubles as a trim.' },
+  { label: 'Retirement target', q: 'What\'s the retirement target?',
+    a: 'Age 62, $4.2M nominal at withdrawal. Current trajectory at 6% real puts him there at 63.5 — close, not safe. The 8-point savings rate drop is the variable that flips it from "close" to "two years late." That\'s the number to put on screen.' },
+  { label: 'Last call notes — Feb 8', q: 'Last call notes — Feb 8?',
+    a: 'Jamie did most of the talking — work, the kids, the new baby. You raised savings at 22 minutes in. He said "let me look at March numbers and circle back." He didn\'t. That phrase has shown up in three calls now.' },
+];
+const VISIBLE_CHIPS = 3;
+let usedChipKeys = new Set();
+// Force the three brief-mandated opener chips on first load
+let visibleChipIdxs = [0, 1, 2];
+
+function pickChips() {
+  const avail = CHIP_POOL.map((_,i) => i).filter(i => !usedChipKeys.has(i));
+  const picks = [];
+  while (picks.length < VISIBLE_CHIPS && avail.length) {
+    picks.push(avail.splice(Math.floor(Math.random()*avail.length), 1)[0]);
+  }
+  if (picks.length < VISIBLE_CHIPS) {
+    usedChipKeys = new Set();
+    return pickChips();
+  }
+  return picks;
+}
+
+function renderChips() {
+  const el = document.getElementById('chat-chips');
+  el.innerHTML = '';
+  visibleChipIdxs.forEach((poolIdx, slot) => {
+    const chip = CHIP_POOL[poolIdx];
+    const btn = document.createElement('button');
+    btn.className = 'cv-chat-chip';
+    btn.textContent = chip.label;
+    btn.onclick = () => rotateChip(slot);
+    el.appendChild(btn);
+  });
+}
+
+function rotateChip(slot) {
+  const poolIdx = visibleChipIdxs[slot];
+  const chip = CHIP_POOL[poolIdx];
+  ask(chip.q, chip.a);
+  usedChipKeys.add(poolIdx);
+  const exclude = new Set([...usedChipKeys, ...visibleChipIdxs]);
+  const avail = CHIP_POOL.map((_,i) => i).filter(i => !exclude.has(i));
+  if (avail.length === 0) {
+    usedChipKeys = new Set(visibleChipIdxs);
+    visibleChipIdxs = pickChips();
+  } else {
+    visibleChipIdxs[slot] = avail[Math.floor(Math.random()*avail.length)];
+  }
+  renderChips();
+}
+
+const KEYWORDS = [
+  { rx: /\b(sav|contribut|restart)/i, a: 'Jamie agreed to restart in December ($1,500/mo), January ($1,200/mo), and February ($1,000/mo). Each time the number got smaller. He\'s negotiating with himself, not with you. The December number is the honest one.' },
+  { rx: /\b(march|last spring)\b/i, a: 'Same shape. Last March: three deferred commitments → market wobble in April → Jamie used the wobble as a reason to "wait and see" → he didn\'t restart until July. Four months of lost contributions. If you don\'t name the pattern now, he\'ll find a reason in the next earnings cycle.' },
+  { rx: /\b(adaeze|decision|wife|spouse)\b/i, a: 'On the big moves, yes. Beneficiary update (Feb) — she initiated. The 2023 refi — she was on the call. The 2024 college 529 bump — her idea. Jamie handles the day-to-day; Adaeze handles the decisions with consequences. The savings restart is a decisions-with-consequences call. She should be in the room.' },
+  { rx: /\b(rebalance|emergency|18k|\$18)/i, a: 'Better than expected. Moved $18k into the emergency fund last Tuesday, unprompted. First self-initiated action in four months. Two reads: (1) the Q1 statement landed and scared him a little, which is useful; (2) he\'s showing you he can act when it matters. Use this as proof-of-capability when you bring up the savings restart.' },
+  { rx: /\b(tax|harvest|loss)\b/i, a: 'Tax-loss harvesting window opens April 15. Two lots in the taxable brokerage at unrealized losses worth ~$8,400 combined. Wash-sale clear. Pair it with a small equity trim — the sleeve drifted from 68% to 72.4% on the rally.' },
+  { rx: /\b(529|college|tuition|kids)/i, a: 'Kids are 17 and 15. The older one\'s 529 is short of in-state tuition by ~$22k. Jamie opened the contribution email four times in March without acting. It\'s on his mind, the action isn\'t.' },
+  { rx: /\b(ytd|return|portfolio|benchmark|performance)/i, a: 'Portfolio +11.4% YTD vs benchmark +9.6%. The alpha is real but lopsided — concentrated in the equity sleeve\'s drift past target. Lead with the win, then name the drift before he reads it as the new normal.' },
+  { rx: /\b(retire|target|62)/i, a: 'Target age 62, $4.2M nominal. At current 6% real, trajectory hits at 63.5 — close, not safe. The 8-point savings rate drop is what flips it from "close" to "two years late." That\'s the number to put on screen.' },
+];
+
+function appendBubble(text, who) {
+  const scroll = document.getElementById('chat-scroll');
+  const div = document.createElement('div');
+  div.className = 'cv-chat-bubble ' + who;
+  div.textContent = text;
+  scroll.appendChild(div);
+  scroll.scrollTop = scroll.scrollHeight;
+}
+function ask(q, a) {
+  appendBubble(q, 'user');
+  setTimeout(() => appendBubble(a, 'assistant'), 380);
+}
+function sendInput(e) {
+  e.preventDefault();
+  const input = document.getElementById('chat-input');
+  const t = input.value.trim();
+  if (!t) return;
+  input.value = '';
+  let reply = "Not sure — try savings, rebalance, Adaeze, the March pattern, or use a chip.";
+  for (const k of KEYWORDS) { if (k.rx.test(t)) { reply = k.a; break; } }
+  ask(t, reply);
+}
+function collapseChat() {
+  const panel = document.getElementById('chat-panel');
+  if (panel.classList.contains('collapsed')) return;
+  const input = document.getElementById('chat-input');
+  if (input) input.blur();
+  if (window._chatExpandTimer) {
+    clearTimeout(window._chatExpandTimer);
+    window._chatExpandTimer = null;
+  }
+  panel.style.height = panel.offsetHeight + 'px';
+  panel.style.width = panel.offsetWidth + 'px';
+  panel.offsetHeight;
+  panel.classList.add('collapsed');
+  panel.style.height = '';
+  panel.style.width = '';
+}
+function expandChat() {
+  const panel = document.getElementById('chat-panel');
+  if (!panel.classList.contains('collapsed')) return;
+  panel.classList.remove('collapsed');
+  panel.style.transition = 'none';
+  panel.style.height = 'auto';
+  panel.style.width = '';
+  const targetH = panel.offsetHeight;
+  panel.style.height = '52px';
+  panel.classList.add('collapsed');
+  panel.offsetHeight;
+  panel.style.transition = '';
+  panel.classList.remove('collapsed');
+  panel.style.height = targetH + 'px';
+  window._chatExpandTimer = setTimeout(() => {
+    panel.style.height = '';
+    window._chatExpandTimer = null;
+    const input = document.getElementById('chat-input');
+    if (input) input.focus();
+  }, 550);
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const sm = document.getElementById('search-modal');
+    if (sm.classList.contains('open')) { closeSearch(); return; }
+    if (app.classList.contains('panel-open')) closePanel();
+    else collapseChat();
+  }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    openSearch();
+  }
+});
+
+document.getElementById('chat-input').addEventListener('keydown', e => {
+  if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); collapseChat(); }
+});
+
+renderChips();
+</script>
+
+</body>
+</html>
