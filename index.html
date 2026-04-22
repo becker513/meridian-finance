@@ -1471,15 +1471,17 @@
   .cv-chat-scroll {
     max-height: 192px;
     overflow-y: auto;
-    margin-bottom: 14px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
+    padding-bottom: 20px;
     scrollbar-width: none;
     scroll-behavior: smooth;
+    transition: margin-bottom 240ms cubic-bezier(0.22, 1, 0.36, 1);
   }
   .cv-chat-scroll::-webkit-scrollbar { display: none; }
-  .cv-chat-scroll:empty { display: none; }
+  .cv-chat-scroll:empty { padding-bottom: 0; margin-bottom: 0; }
+  .cv-chat-scroll:not(:empty) { margin-bottom: 14px; }
   .cv-chat-bubble {
     font-size: 15px;
     line-height: 1.5;
@@ -1491,23 +1493,23 @@
     align-self: flex-end;
     background: var(--amber);
     color: #fff;
-    transform-origin: 50% 100%;
-    animation: bubble-emerge 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
-    will-change: transform, opacity, filter;
+    animation: bubble-emerge 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    will-change: opacity;
   }
+  /* Pure opacity fade. The scroll container's smooth-scroll provides
+     the vertical motion; adding a transform here fights that motion. */
   @keyframes bubble-emerge {
-    from { opacity: 0; filter: blur(3px); transform: translate3d(0, 6px, 0); }
-    to   { opacity: 1; filter: blur(0);   transform: translate3d(0, 0, 0); }
+    from { opacity: 0; }
+    to   { opacity: 1; }
   }
   .cv-chat-bubble.assistant {
     align-self: flex-start;
     background: transparent;
     color: #444;
     border: 1px solid var(--border);
-    transform-origin: 50% 100%;
     animation: bubble-emerge 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
     transition: color 320ms cubic-bezier(0.22,1,0.36,1), border-color 320ms cubic-bezier(0.22,1,0.36,1);
-    will-change: transform, opacity, filter;
+    will-change: opacity;
   }
   .cv-chat-input {
     width: 100%;
@@ -2327,17 +2329,24 @@ function pickChips() {
   return picks;
 }
 
+function makeChipButton(slot) {
+  const chip = CHIP_POOL[visibleChipIdxs[slot]];
+  const btn = document.createElement('button');
+  btn.className = 'cv-chat-chip';
+  btn.textContent = chip.label;
+  btn.onclick = () => rotateChip(slot);
+  return btn;
+}
 function renderChips() {
   const el = document.getElementById('chat-chips');
   el.innerHTML = '';
-  visibleChipIdxs.forEach((poolIdx, slot) => {
-    const chip = CHIP_POOL[poolIdx];
-    const btn = document.createElement('button');
-    btn.className = 'cv-chat-chip';
-    btn.textContent = chip.label;
-    btn.onclick = () => rotateChip(slot);
-    el.appendChild(btn);
-  });
+  visibleChipIdxs.forEach((_, slot) => el.appendChild(makeChipButton(slot)));
+}
+function swapChip(slot) {
+  const el = document.getElementById('chat-chips');
+  const old = el.children[slot];
+  if (!old) return;
+  el.replaceChild(makeChipButton(slot), old);
 }
 
 function rotateChip(slot) {
@@ -2350,10 +2359,11 @@ function rotateChip(slot) {
   if (avail.length === 0) {
     usedChipKeys = new Set(visibleChipIdxs);
     visibleChipIdxs = pickChips();
+    renderChips();
   } else {
     visibleChipIdxs[slot] = avail[Math.floor(Math.random()*avail.length)];
+    swapChip(slot);
   }
-  renderChips();
 }
 
 const KEYWORDS = [
@@ -2456,8 +2466,10 @@ function ask(q, a, opts) {
   appendBubble(q, 'user');
   setTimeout(() => {
     const bubble = appendThinkingBubble(think);
-    setTimeout(() => morphToAnswer(bubble, a), 900 + Math.random() * 200);
-  }, 220);
+    // Hold the shimmer long enough to feel genuine — a sub-second beat
+    // reads as a fake flicker, not a thinking pause.
+    setTimeout(() => morphToAnswer(bubble, a), 1150 + Math.random() * 300);
+  }, 260);
 }
 function sendInput(e) {
   e.preventDefault();
