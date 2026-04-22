@@ -1484,18 +1484,20 @@
     padding: 8px 12px;
     border-radius: 10px;
     max-width: 92%;
-    animation: rise 0.3s var(--ease-out) both;
   }
   .cv-chat-bubble.user {
     align-self: flex-end;
     background: var(--amber);
     color: #fff;
+    animation: rise 0.3s var(--ease-out) both;
   }
   .cv-chat-bubble.assistant {
     align-self: flex-start;
     background: transparent;
     color: #444;
     border: 1px solid var(--border);
+    animation: rise 0.3s var(--ease-out) both;
+    transition: color 320ms cubic-bezier(0.22,1,0.36,1), border-color 320ms cubic-bezier(0.22,1,0.36,1);
   }
   .cv-chat-input {
     width: 100%;
@@ -1570,28 +1572,27 @@
   }
   .cv-chat-chip:active { transform: scale(0.97); }
 
-  /* Assistant bubble — starts in thinking state, then cross-fades to the answer.
-     No caret, no pills, no typewriter. One container, one motion. */
-  .cv-chat-bubble.assistant {
-    transition: opacity 220ms var(--ease-out), filter 260ms var(--ease-out);
-  }
+  /* Thinking state: bubble keeps identical padding + layout to the answer,
+     so the morph has no geometry pop. Only the inline <span class="think">
+     contents fade; the bubble color + border cross-fade via the base transition. */
   .cv-chat-bubble.assistant.is-thinking {
     color: var(--text-tertiary);
     border-color: transparent;
-    padding: 6px 4px;
-    display: flex;
+  }
+  .cv-chat-bubble.assistant .think {
+    display: inline-flex;
     align-items: center;
     gap: 10px;
   }
-  .cv-chat-bubble.assistant.is-thinking .mark {
+  .cv-chat-bubble.assistant .think .mark {
+    display: inline-block;
     width: 7px; height: 7px;
-    flex-shrink: 0;
     border-radius: 50%;
     background: var(--amber);
     opacity: 0.55;
     animation: think-breathe 1.4s ease-in-out infinite;
   }
-  .cv-chat-bubble.assistant.is-thinking .label {
+  .cv-chat-bubble.assistant .think .label {
     font-size: 13px;
     line-height: 1.4;
     background: linear-gradient(90deg,
@@ -1605,21 +1606,12 @@
     animation: think-shimmer 1.8s linear infinite;
   }
   @keyframes think-breathe {
-    0%, 100% { opacity: 0.35; transform: scale(0.8); }
-    50%      { opacity: 0.9;  transform: scale(1.1); }
+    0%, 100% { opacity: 0.4; transform: scale(0.85); }
+    50%      { opacity: 0.9; transform: scale(1.1); }
   }
   @keyframes think-shimmer {
     0%   { background-position: 200% 0; }
     100% { background-position: -200% 0; }
-  }
-  .cv-chat-bubble.assistant.is-fading { opacity: 0; filter: blur(4px); }
-  .cv-chat-bubble.assistant.is-revealing {
-    animation: answer-reveal 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
-  @keyframes answer-reveal {
-    0%   { opacity: 0; filter: blur(6px); transform: translateY(3px); }
-    60%  { opacity: 1; }
-    100% { opacity: 1; filter: blur(0); transform: translateY(0); }
   }
 </style>
 </head>
@@ -2402,31 +2394,51 @@ function appendThinkingBubble(label) {
   const scroll = document.getElementById('chat-scroll');
   const bubble = document.createElement('div');
   bubble.className = 'cv-chat-bubble assistant is-thinking';
-  const mark = document.createElement('span');
-  mark.className = 'mark';
-  const lbl = document.createElement('span');
-  lbl.className = 'label';
-  lbl.textContent = label;
-  bubble.append(mark, lbl);
+  const think = document.createElement('span');
+  think.className = 'think';
+  think.innerHTML = '<span class="mark"></span><span class="label"></span>';
+  think.querySelector('.label').textContent = label;
+  bubble.appendChild(think);
   scroll.appendChild(bubble);
   scroll.scrollTop = scroll.scrollHeight;
   return bubble;
 }
-// Thinking shimmer → fade out → swap contents → blur-fade-in reveal. One container.
+// Morph: fade thinking contents out → snap content swap while invisible →
+// fade/blur the answer in. Inline-style transitions (no class-triggered
+// animation restarts), matched padding/border, double-rAF for clean retrigger.
 function morphToAnswer(bubble, answer) {
   const scroll = document.getElementById('chat-scroll');
-  bubble.classList.add('is-fading');
+  const think = bubble.querySelector('.think');
+  const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
+  // Phase 1: fade the thinking contents out
+  if (think) {
+    think.style.transition = `opacity 240ms ${EASE}, filter 240ms ${EASE}`;
+    think.style.opacity = '0';
+    think.style.filter = 'blur(4px)';
+  }
   setTimeout(() => {
-    bubble.classList.remove('is-thinking', 'is-fading');
+    // Phase 2: snap to invisible+blurred, swap content, remove thinking state
+    bubble.style.transition = 'none';
+    bubble.style.opacity = '0';
+    bubble.style.filter = 'blur(6px)';
+    bubble.classList.remove('is-thinking');
     bubble.textContent = answer;
-    // Force a reflow so the reveal animation restarts cleanly
-    void bubble.offsetWidth;
-    bubble.classList.add('is-revealing');
-    bubble.addEventListener('animationend', () => {
-      bubble.classList.remove('is-revealing');
-    }, { once: true });
+    // Double-rAF ensures the browser commits the opacity:0 state
+    // before we flip to the transition that fades it in
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        bubble.style.transition = `opacity 440ms ${EASE}, filter 440ms ${EASE}`;
+        bubble.style.opacity = '1';
+        bubble.style.filter = 'blur(0)';
+        setTimeout(() => {
+          bubble.style.transition = '';
+          bubble.style.opacity = '';
+          bubble.style.filter = '';
+        }, 460);
+      });
+    });
     scroll.scrollTop = scroll.scrollHeight;
-  }, 220);
+  }, 240);
 }
 function ask(q, a, opts) {
   opts = opts || {};
